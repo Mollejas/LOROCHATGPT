@@ -2722,16 +2722,25 @@
        document.addEventListener('DOMContentLoaded', function () {
            const modalEl = document.getElementById('diagModal'); // id real de tu modal
            if (!modalEl) return;
+
+           let diagNeedsReload = false;
+
            modalEl.addEventListener('hidden.bs.modal', function () {
-               // recarga completa => vuelve a correr Page_Load normal
-               window.location.reload();
+               // Solo recarga si el hijo avisó que hay cambios; si no, limpia el iframe.
+               if (diagNeedsReload) {
+                   diagNeedsReload = false;
+                   window.location.reload();
+               } else {
+                   const frame = document.getElementById('diagFrame');
+                   if (frame) frame.src = '';
+               }
            });
 
            // (opcional) si el hijo avisa:
            window.addEventListener('message', function (e) {
                if (e.origin !== window.location.origin) return;
                if (e.data && e.data.type === 'MECA_UPDATED') {
-                   window.location.reload();
+                   diagNeedsReload = true;
                }
            });
        });
