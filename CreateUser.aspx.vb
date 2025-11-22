@@ -67,6 +67,10 @@ Public Class CreateUser
         txtConfirm.Text = ""
         chkValidador.Checked = False
         chkAdmin.Checked = False
+        chkJefeServicio.Checked = False
+        chkJefeRefacciones.Checked = False
+        chkJefeAdministracion.Checked = False
+        chkJefeTaller.Checked = False
         chkPar.Checked = False
         chkNon.Checked = False
         lblMsg.Text = ""
@@ -77,7 +81,9 @@ Public Class CreateUser
     Private Sub BindGrid()
         Using cn As New SqlConnection(Cs)
             Using da As New SqlDataAdapter("
-                SELECT UsuarioId, Nombre, Correo, Telefono, Validador, EsAdmin, Paridad, FechaAlta
+                SELECT UsuarioId, Nombre, Correo, Telefono,
+                       Validador, EsAdmin, JefeServicio, JefeRefacciones, JefeAdministracion, JefeTaller,
+                       Paridad, FechaAlta
                 FROM dbo.Usuarios
                 ORDER BY UsuarioId DESC", cn)
                 Dim dt As New DataTable()
@@ -117,6 +123,10 @@ Public Class CreateUser
 
             Dim validador As Boolean = chkValidador.Checked
             Dim esAdmin As Boolean = chkAdmin.Checked
+            Dim jefeServicio As Boolean = chkJefeServicio.Checked
+            Dim jefeRefacciones As Boolean = chkJefeRefacciones.Checked
+            Dim jefeAdministracion As Boolean = chkJefeAdministracion.Checked
+            Dim jefeTaller As Boolean = chkJefeTaller.Checked
 
             ' === Hash con SALT (requerido por tu esquema) ===
             Dim salt As Byte() = GenerateSalt()                   ' 32 bytes
@@ -135,9 +145,13 @@ Public Class CreateUser
 
                 Using cmd As New SqlCommand("
                     INSERT INTO dbo.Usuarios
-                        (Nombre, Correo, Telefono, PasswordHash, PasswordSalt, Validador, EsAdmin, Paridad, FechaAlta)
+                        (Nombre, Correo, Telefono, PasswordHash, PasswordSalt,
+                         Validador, EsAdmin, JefeServicio, JefeRefacciones, JefeAdministracion, JefeTaller,
+                         Paridad, FechaAlta)
                     VALUES
-                        (@Nombre, @Correo, @Telefono, @PasswordHash, @PasswordSalt, @Validador, @EsAdmin, @Paridad, SYSDATETIME());
+                        (@Nombre, @Correo, @Telefono, @PasswordHash, @PasswordSalt,
+                         @Validador, @EsAdmin, @JefeServicio, @JefeRefacciones, @JefeAdministracion, @JefeTaller,
+                         @Paridad, SYSDATETIME());
                     SELECT SCOPE_IDENTITY();", cn)
 
                     cmd.Parameters.Add("@Nombre", SqlDbType.NVarChar, 100).Value = nombre
@@ -151,6 +165,10 @@ Public Class CreateUser
 
                     cmd.Parameters.Add("@Validador", SqlDbType.Bit).Value = validador
                     cmd.Parameters.Add("@EsAdmin", SqlDbType.Bit).Value = esAdmin
+                    cmd.Parameters.Add("@JefeServicio", SqlDbType.Bit).Value = jefeServicio
+                    cmd.Parameters.Add("@JefeRefacciones", SqlDbType.Bit).Value = jefeRefacciones
+                    cmd.Parameters.Add("@JefeAdministracion", SqlDbType.Bit).Value = jefeAdministracion
+                    cmd.Parameters.Add("@JefeTaller", SqlDbType.Bit).Value = jefeTaller
                     cmd.Parameters.Add("@Paridad", SqlDbType.NVarChar, 3).Value = paridad
 
                     Dim newId = Convert.ToInt32(Convert.ToDecimal(cmd.ExecuteScalar()))
@@ -200,10 +218,18 @@ Public Class CreateUser
 
             Dim chkV As CheckBox = TryCast(row.FindControl("chkEditValidador"), CheckBox)
             Dim chkA As CheckBox = TryCast(row.FindControl("chkEditAdmin"), CheckBox)
+            Dim chkJS As CheckBox = TryCast(row.FindControl("chkEditJefeServicio"), CheckBox)
+            Dim chkJR As CheckBox = TryCast(row.FindControl("chkEditJefeRefacciones"), CheckBox)
+            Dim chkJA As CheckBox = TryCast(row.FindControl("chkEditJefeAdministracion"), CheckBox)
+            Dim chkJT As CheckBox = TryCast(row.FindControl("chkEditJefeTaller"), CheckBox)
             Dim ddlP As DropDownList = TryCast(row.FindControl("ddlEditParidad"), DropDownList)
 
             Dim validador As Boolean = If(chkV IsNot Nothing, chkV.Checked, False)
             Dim esAdmin As Boolean = If(chkA IsNot Nothing, chkA.Checked, False)
+            Dim jefeServicio As Boolean = If(chkJS IsNot Nothing, chkJS.Checked, False)
+            Dim jefeRefacciones As Boolean = If(chkJR IsNot Nothing, chkJR.Checked, False)
+            Dim jefeAdministracion As Boolean = If(chkJA IsNot Nothing, chkJA.Checked, False)
+            Dim jefeTaller As Boolean = If(chkJT IsNot Nothing, chkJT.Checked, False)
             Dim paridad As String = If(ddlP IsNot Nothing AndAlso Not String.IsNullOrEmpty(ddlP.SelectedValue), ddlP.SelectedValue, "NA")
 
             If String.IsNullOrWhiteSpace(nombre) Then
@@ -227,7 +253,9 @@ Public Class CreateUser
                 Using cmd As New SqlCommand("
                     UPDATE dbo.Usuarios
                     SET Nombre=@Nombre, Correo=@Correo, Telefono=@Telefono,
-                        Validador=@Validador, EsAdmin=@EsAdmin, Paridad=@Paridad
+                        Validador=@Validador, EsAdmin=@EsAdmin,
+                        JefeServicio=@JefeServicio, JefeRefacciones=@JefeRefacciones, JefeAdministracion=@JefeAdministracion, JefeTaller=@JefeTaller,
+                        Paridad=@Paridad
                     WHERE UsuarioId=@Id", cn)
 
                     cmd.Parameters.Add("@Nombre", SqlDbType.NVarChar, 100).Value = nombre
@@ -236,6 +264,10 @@ Public Class CreateUser
                         If(String.IsNullOrWhiteSpace(telefono), DBNull.Value, CType(telefono, Object))
                     cmd.Parameters.Add("@Validador", SqlDbType.Bit).Value = validador
                     cmd.Parameters.Add("@EsAdmin", SqlDbType.Bit).Value = esAdmin
+                    cmd.Parameters.Add("@JefeServicio", SqlDbType.Bit).Value = jefeServicio
+                    cmd.Parameters.Add("@JefeRefacciones", SqlDbType.Bit).Value = jefeRefacciones
+                    cmd.Parameters.Add("@JefeAdministracion", SqlDbType.Bit).Value = jefeAdministracion
+                    cmd.Parameters.Add("@JefeTaller", SqlDbType.Bit).Value = jefeTaller
                     cmd.Parameters.Add("@Paridad", SqlDbType.NVarChar, 3).Value = paridad
                     cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id
 
