@@ -98,6 +98,8 @@
         .tbl td{border-bottom:1px solid var(--border-color)}
         .tbl tr:last-child td{border-bottom:none}
         .tbl tr:hover td{background:var(--primary-light)}
+        .actions-cell a{margin-right:12px;font-weight:700;text-decoration:none;color:var(--nav-bg)}
+        .actions-cell a:last-child{margin-right:0}
 
         .badge{display:inline-block;padding:4px 10px;font-size:11px;font-weight:700;border-radius:999px;background:var(--primary-light);color:var(--chip-active-bg);border:1px solid #a7f3d0;text-transform:uppercase;letter-spacing:.02em}
         .muted{color:var(--text-muted)}
@@ -177,6 +179,22 @@
                                     <asp:CheckBox ID="chkAdmin" runat="server" />
                                     <label for="<%= chkAdmin.ClientID %>">Administrador</label>
                                 </div>
+                                <div class="chip">
+                                    <asp:CheckBox ID="chkJefeServicio" runat="server" />
+                                    <label for="<%= chkJefeServicio.ClientID %>">Jefe de servicio</label>
+                                </div>
+                                <div class="chip">
+                                    <asp:CheckBox ID="chkJefeRefacciones" runat="server" />
+                                    <label for="<%= chkJefeRefacciones.ClientID %>">Jefe de refacciones</label>
+                                </div>
+                                <div class="chip">
+                                    <asp:CheckBox ID="chkJefeAdministracion" runat="server" />
+                                    <label for="<%= chkJefeAdministracion.ClientID %>">Jefe de administración</label>
+                                </div>
+                                <div class="chip">
+                                    <asp:CheckBox ID="chkJefeTaller" runat="server" />
+                                    <label for="<%= chkJefeTaller.ClientID %>">Jefe de taller</label>
+                                </div>
                             </div>
                             
                             <div class="paridad-box">
@@ -241,6 +259,42 @@
                             </EditItemTemplate>
                         </asp:TemplateField>
 
+                        <asp:TemplateField HeaderText="Jefe Servicio">
+                            <ItemTemplate>
+                                <asp:CheckBox ID="chkItemJefeServicio" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeServicio")) %>' Enabled="false" />
+                            </ItemTemplate>
+                            <EditItemTemplate>
+                                <asp:CheckBox ID="chkEditJefeServicio" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeServicio")) %>' />
+                            </EditItemTemplate>
+                        </asp:TemplateField>
+
+                        <asp:TemplateField HeaderText="Jefe Refacciones">
+                            <ItemTemplate>
+                                <asp:CheckBox ID="chkItemJefeRefacciones" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeRefacciones")) %>' Enabled="false" />
+                            </ItemTemplate>
+                            <EditItemTemplate>
+                                <asp:CheckBox ID="chkEditJefeRefacciones" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeRefacciones")) %>' />
+                            </EditItemTemplate>
+                        </asp:TemplateField>
+
+                        <asp:TemplateField HeaderText="Jefe Administración">
+                            <ItemTemplate>
+                                <asp:CheckBox ID="chkItemJefeAdministracion" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeAdministracion")) %>' Enabled="false" />
+                            </ItemTemplate>
+                            <EditItemTemplate>
+                                <asp:CheckBox ID="chkEditJefeAdministracion" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeAdministracion")) %>' />
+                            </EditItemTemplate>
+                        </asp:TemplateField>
+
+                        <asp:TemplateField HeaderText="Jefe Taller">
+                            <ItemTemplate>
+                                <asp:CheckBox ID="chkItemJefeTaller" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeTaller")) %>' Enabled="false" />
+                            </ItemTemplate>
+                            <EditItemTemplate>
+                                <asp:CheckBox ID="chkEditJefeTaller" runat="server" Checked='<%# Convert.ToBoolean(Eval("JefeTaller")) %>' />
+                            </EditItemTemplate>
+                        </asp:TemplateField>
+
                         <asp:TemplateField HeaderText="Paridad">
                             <ItemTemplate><%# Eval("Paridad") %></ItemTemplate>
                             <EditItemTemplate>
@@ -253,7 +307,10 @@
                         </asp:TemplateField>
 
                         <asp:BoundField DataField="FechaAlta" HeaderText="Fecha Alta" DataFormatString="{0:yyyy-MM-dd HH:mm}" ReadOnly="True" />
-                        <asp:CommandField ShowEditButton="True" ShowDeleteButton="True" EditText="✏️ Editar" DeleteText="🗑️ Eliminar" />
+                        <asp:CommandField HeaderText="Acciones" ButtonType="Link"
+                            ShowEditButton="True" ShowDeleteButton="True"
+                            EditText="✏️ Modificar" CancelText="↩️ Cancelar" UpdateText="💾 Guardar" DeleteText="🗑️ Eliminar"
+                            CausesValidation="False" ItemStyle-CssClass="actions-cell" />
                     </Columns>
                 </asp:GridView>
             </div>
