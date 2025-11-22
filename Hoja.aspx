@@ -154,12 +154,50 @@
     #btnToggleStrip.blink-danger{animation:blinkBtnDanger 1.1s ease-in-out infinite!important;background:#fee2e2!important;border-color:#ef4444!important;color:#dc2626!important;}
     @keyframes blinkBtnDanger{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55);}50%{box-shadow:0 0 0 8px rgba(239,68,68,0);}100%{box-shadow:0 0 0 0 rgba(239,68,68,.55);}}
     #btnToggleStrip.blink-success{background:#dcfce7!important;border-color:#16a34a!important;color:#15803d!important;}
+
+    /* Blink para botón PROCESO DE DIAGNOSTICO */
+    #btnToggleStripDiag.blink-danger{animation:blinkBtnDanger 1.1s ease-in-out infinite!important;background:#fee2e2!important;border-color:#ef4444!important;color:#dc2626!important;}
+    #btnToggleStripDiag.blink-success{background:#dcfce7!important;border-color:#16a34a!important;color:#15803d!important;}
+
+    /* Blink para botón PROCESO VALUACIÓN */
+    #btnToggleStripVal.blink-danger{animation:blinkBtnDanger 1.1s ease-in-out infinite!important;background:#fee2e2!important;border-color:#ef4444!important;color:#dc2626!important;}
+    #btnToggleStripVal.blink-success{background:#dcfce7!important;border-color:#16a34a!important;color:#15803d!important;}
+
+    /* Estilos para el contenedor stripVal - parpadeo del borde */
+    #stripVal.strip-danger{animation:blinkBorder 1.1s ease-in-out infinite;}
+
+    /* Estilos para el contenedor stripDiag - solo parpadeo del borde */
+    #stripDiag.strip-danger{animation:blinkBorder 1.1s ease-in-out infinite;}
     #strip{overflow:hidden;transition:max-height .35s ease,opacity .25s ease,transform .35s ease;}
     #strip.is-collapsed{max-height:0!important;opacity:0;transform:translateY(6px);pointer-events:none;margin-top:0!important;margin-bottom:0!important;border-width:0;}
 
-    /* Transición y colapso para ambas tiras */
-    #strip, #stripDiag{ overflow:hidden; transition:max-height .35s ease, opacity .25s ease, transform .35s ease; }
-    #strip.is-collapsed, #stripDiag.is-collapsed{ max-height:0!important; opacity:0; transform:translateY(6px); pointer-events:none; margin-top:0!important; margin-bottom:0!important; border-width:0; }
+    /* Transición y colapso para todas las tiras */
+    #strip, #stripDiag, #stripVal{ overflow:hidden; transition:max-height .35s ease, opacity .25s ease, transform .35s ease; }
+    #strip.is-collapsed, #stripDiag.is-collapsed, #stripVal.is-collapsed{ max-height:0!important; min-height:0!important; height:0!important; opacity:0; transform:translateY(6px); pointer-events:none; margin:0!important; padding:0!important; border-width:0; }
+
+    /* Tiles de fechas en valuación */
+    .fecha-tile{min-height:60px!important;padding:8px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;}
+    .fecha-tile small{font-size:.7rem;line-height:1.2;margin-bottom:4px;}
+    .fecha-valor{font-size:.8rem;color:var(--brand-900);}
+
+    /* Asegurar mismo tamaño para todos los toggle buttons */
+    .btn-toggle-strip{min-width:280px;max-width:320px;padding:10px 20px;font-size:.9rem;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;}
+
+    /* Contenedores de las secciones - heredar mismo layout */
+    #diagSection, #valSection{width:100%;padding:0;margin:0;}
+
+    /* Espaciado consistente entre toggles - juntos con pequeño espacio */
+    #diagSection, #valSection{margin-top:0.5rem!important;}
+    #diagSection > .d-flex, #valSection > .d-flex{margin-top:0!important;}
+
+    /* Todas las tiras con mismo estilo base y altura consistente */
+    #strip, #stripDiag, #stripVal{
+      max-width:100%;
+      box-sizing:border-box;
+      margin-left:auto;
+      margin-right:auto;
+      min-height:120px;
+    }
   </style>
 
   <!-- Pinta verde la tarjeta ODA si el LinkButton existe/habilitado -->
@@ -463,6 +501,25 @@
   box-shadow: 0 0 0 .20rem rgba(37, 99, 235, .18);
 }
 .tile-disabled{ opacity:.55; pointer-events:none; filter:grayscale(.5); }
+
+/* === Estilos para Hoja de Trabajo Grid === */
+.ht-grid { font-size: 0.85rem; }
+.ht-grid th { vertical-align: middle !important; }
+.ht-toggle {
+  cursor: pointer;
+  display: inline-block;
+  min-width: 20px;
+  min-height: 20px;
+  line-height: 20px;
+  font-weight: bold;
+  user-select: none;
+  text-align: center;
+}
+.ht-toggle:hover { background: #f0f0f0; border-radius: 3px; }
+.ht-toggle:empty::after { content: "○"; color: #ccc; } /* placeholder cuando está vacío */
+.ht-si { color: #16a34a; } /* verde */
+.ht-no { color: #dc2626; } /* rojo */
+.ht-status { color: #2563eb; } /* azul */
 
 </style>
 
@@ -817,13 +874,11 @@
           </span>
         </div>
 
-        <div id="flagMec" runat="server" ClientIDMode="Static" class="diag-flag off">
-          <asp:CheckBox ID="chkMecSi" runat="server" ClientIDMode="Static" CssClass="form-check-input" />
-          <i id="icoMec" runat="server" ClientIDMode="Static" class="bi bi-x-circle-fill" aria-hidden="true"></i>
-          <span class="state">Bloqueado</span>
-        </div>
-
-        <div class="icon-row compacto">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <div id="flagMec" runat="server" ClientIDMode="Static" class="diag-flag off">
+            <asp:CheckBox ID="chkMecSi" runat="server" ClientIDMode="Static" CssClass="form-check-input" />
+            <i id="icoMec" runat="server" ClientIDMode="Static" class="bi bi-toggle-off fs-4" aria-hidden="true"></i>
+          </div>
           <asp:LinkButton ID="btnDiagnosticoMecanica" runat="server" CssClass="icon-btn compacto"
             ToolTip="Abrir módulo de diagnóstico mecánico"
             UseSubmitBehavior="false"
@@ -835,7 +890,7 @@
       </div>
 
       <!-- === TILE COLISIÓN === -->
-      <div class="tile compacto">
+      <div id="tileCol" runat="server" ClientIDMode="Static" class="tile compacto">
         <div class="title text-center">Colisión</div>
 
         <!-- Fin diagnóstico Colisión (arriba y centrado) -->
@@ -847,13 +902,11 @@
           </span>
         </div>
 
-        <div id="flagHoja" class="diag-flag off">
-          <asp:CheckBox ID="chkHojaSi" runat="server" ClientIDMode="Static" CssClass="form-check-input" />
-          <i id="icoHoja" class="bi bi-x-circle-fill" aria-hidden="true"></i>
-          <span class="state">Bloqueado</span>
-        </div>
-
-        <div class="icon-row compacto">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <div id="flagHoja" runat="server" ClientIDMode="Static" class="diag-flag off">
+            <asp:CheckBox ID="chkHojaSi" runat="server" ClientIDMode="Static" CssClass="form-check-input" />
+            <i id="icoHoja" runat="server" ClientIDMode="Static" class="bi bi-toggle-off fs-4" aria-hidden="true"></i>
+          </div>
           <asp:LinkButton ID="btnDiagnosticoHojalateria" runat="server" CssClass="icon-btn compacto"
             ToolTip="Abrir módulo de diagnóstico de hojalatería"
             UseSubmitBehavior="false"
@@ -865,10 +918,110 @@
       </div>
     </div>
   </div>
-</div>
-
 
     <asp:HiddenField ID="hidDiagSrc" runat="server" ClientIDMode="Static" />
+  </div>
+
+  <!-- ====== CONTENEDOR VALUACIÓN ====== -->
+  <div id="valSection" class="d-none">
+    <div class="d-flex justify-content-center mt-3">
+      <button type="button" id="btnToggleStripVal" class="btn-toggle-strip" data-target="#stripVal" title="Mostrar/Ocultar valuación">
+        <i class="bi bi-calculator"></i>
+        PROCESO VALUACIÓN
+        <i class="bi bi-chevron-down chev"></i>
+      </button>
+    </div>
+
+    <div id="stripVal" class="card-pane doc-strip compacto p-2 mt-4">
+      <!-- === FILA DE FECHAS === -->
+      <div class="doc-strip-grid mb-2">
+        <div class="tile compacto fecha-tile">
+          <small class="text-muted d-block">Fecha Inicio Valuación</small>
+          <asp:Label ID="lblFechaIniVal" runat="server" Text="—" ClientIDMode="Static" CssClass="fw-bold fecha-valor" />
+        </div>
+        <div class="tile compacto fecha-tile">
+          <small class="text-muted d-block">Fecha límite envío</small>
+          <asp:Label ID="lblFechaLimEnvVal" runat="server" Text="—" ClientIDMode="Static" CssClass="fw-bold fecha-valor" />
+        </div>
+        <div class="tile compacto fecha-tile">
+          <small class="text-muted d-block">Fecha envío valuación</small>
+          <asp:Label ID="lblFechaEnvVal" runat="server" Text="—" ClientIDMode="Static" CssClass="fw-bold fecha-valor" />
+        </div>
+        <div class="tile compacto fecha-tile">
+          <small class="text-muted d-block">Fecha autorización</small>
+          <asp:Label ID="lblFechaAutVal" runat="server" Text="—" ClientIDMode="Static" CssClass="fw-bold fecha-valor" />
+        </div>
+        <div class="tile compacto fecha-tile">
+          <small class="text-muted d-block">Fecha límite autoriz.</small>
+          <asp:Label ID="lblFechaLimAutVal" runat="server" Text="—" ClientIDMode="Static" CssClass="fw-bold fecha-valor" />
+        </div>
+      </div>
+
+      <!-- === TILES DE DOCUMENTOS === -->
+      <div class="doc-strip-grid">
+        <!-- Hoja de trabajo sin autorizar -->
+        <div id="tileHojaTrabajo" runat="server" class="tile compacto">
+          <div class="title">Hoja trabajo sin autorizar</div>
+          <div class="icon-row compacto">
+            <asp:LinkButton ID="btnVerHojaTrabajo" runat="server" CssClass="icon-btn compacto" ToolTip="Ver hoja de trabajo" aria-label="Ver hoja de trabajo" OnClick="btnVerHojaTrabajo_Click">
+              <i class="bi bi-eye"></i>
+            </asp:LinkButton>
+          </div>
+        </div>
+
+        <!-- Valuación sin autorizar PDF -->
+        <div id="tileValSinAut" runat="server" class="tile compacto">
+          <div class="title">Valuación sin autorizar</div>
+          <div class="icon-row compacto">
+            <a href="#" class="icon-btn compacto" id="btnSubirValSinAut" data-bs-toggle="modal" data-bs-target="#modalValSinAut" title="Subir valuación sin autorizar">
+              <i class="bi bi-cloud-upload"></i>
+            </a>
+            <asp:LinkButton ID="btnVerValSinAut" runat="server" CssClass="icon-btn compacto" ToolTip="Ver valuación sin autorizar" aria-label="Ver valuación sin autorizar" OnClick="btnVerValSinAut_Click">
+              <i class="bi bi-eye"></i>
+            </asp:LinkButton>
+          </div>
+        </div>
+
+        <!-- Valuación autorizada PDF -->
+        <div id="tileValAutPdf" runat="server" class="tile compacto">
+          <div class="title">Valuación autorizada PDF</div>
+          <div class="icon-row compacto">
+            <a href="#" class="icon-btn compacto" id="btnSubirValAutPdf" data-bs-toggle="modal" data-bs-target="#modalValAutPdf" title="Subir valuación autorizada PDF">
+              <i class="bi bi-cloud-upload"></i>
+            </a>
+            <asp:LinkButton ID="btnVerValAutPdf" runat="server" CssClass="icon-btn compacto" ToolTip="Ver valuación autorizada PDF" aria-label="Ver valuación autorizada PDF" OnClick="btnVerValAutPdf_Click">
+              <i class="bi bi-eye"></i>
+            </asp:LinkButton>
+          </div>
+        </div>
+
+        <!-- Hoja de trabajo autorizada -->
+        <div id="tileHojaTrabajoAut" runat="server" class="tile compacto">
+          <div class="title">Hoja trabajo autorizada</div>
+          <div class="icon-row compacto">
+            <a href="#" class="icon-btn compacto" id="btnSubirHojaTrabajoAut" title="Subir hoja de trabajo autorizada">
+              <i class="bi bi-cloud-upload"></i>
+            </a>
+            <asp:LinkButton ID="btnVerHojaTrabajoAut" runat="server" CssClass="icon-btn compacto" ToolTip="Ver hoja de trabajo autorizada" aria-label="Ver hoja de trabajo autorizada">
+              <i class="bi bi-eye"></i>
+            </asp:LinkButton>
+          </div>
+        </div>
+
+        <!-- Seguimiento a complementos -->
+        <div id="tileSeguimientoCompl" runat="server" class="tile compacto">
+          <div class="title">Seguimiento complementos</div>
+          <div class="icon-row compacto">
+            <a href="#" class="icon-btn compacto" id="btnSubirSeguimientoCompl" title="Subir seguimiento a complementos">
+              <i class="bi bi-cloud-upload"></i>
+            </a>
+            <asp:LinkButton ID="btnVerSeguimientoCompl" runat="server" CssClass="icon-btn compacto" ToolTip="Ver seguimiento a complementos" aria-label="Ver seguimiento a complementos">
+              <i class="bi bi-eye"></i>
+            </asp:LinkButton>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Hidden helpers -->
@@ -1250,6 +1403,238 @@
     </div>
   </div>
 
+  <!-- ===================== MODAL: Hoja de Trabajo Sin Autorizar ===================== -->
+  <div class="modal fade" id="modalHojaTrabajo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Hoja de Trabajo Sin Autorizar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Encabezado con datos del auto e imagen -->
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <h6 class="fw-bold mb-3">Datos del Vehículo</h6>
+              <table class="table table-sm table-bordered">
+                <tr>
+                  <th style="width:120px;">Expediente</th>
+                  <td><asp:Label ID="lblHTExpediente" runat="server" /></td>
+                  <th style="width:100px;">Año</th>
+                  <td><asp:Label ID="lblHTAnio" runat="server" /></td>
+                </tr>
+                <tr>
+                  <th>Marca</th>
+                  <td><asp:Label ID="lblHTMarca" runat="server" /></td>
+                  <th>Color</th>
+                  <td><asp:Label ID="lblHTColor" runat="server" /></td>
+                </tr>
+                <tr>
+                  <th>Modelo</th>
+                  <td><asp:Label ID="lblHTModelo" runat="server" /></td>
+                  <th>Placas</th>
+                  <td><asp:Label ID="lblHTPlacas" runat="server" /></td>
+                </tr>
+              </table>
+            </div>
+            <div class="col-md-4 text-center">
+              <asp:Image ID="imgHTPrincipal" runat="server" CssClass="img-fluid rounded" style="max-height:150px;" AlternateText="Imagen del vehículo" />
+            </div>
+          </div>
+
+          <!-- GridViews de Mecánica -->
+          <h6 class="fw-bold text-primary mb-2"><i class="bi bi-wrench"></i> Mecánica</h6>
+          <div class="row mb-4">
+            <div class="col-lg-6">
+              <h6 class="text-muted">Reparación</h6>
+              <asp:GridView ID="gvMecReparacion" runat="server" CssClass="table table-sm table-striped table-bordered ht-grid" AutoGenerateColumns="False" EmptyDataText="Sin registros" OnRowDataBound="gvHT_RowDataBound">
+                <Columns>
+                  <asp:BoundField DataField="cantidad" HeaderText="Cant" ItemStyle-Width="40px" ItemStyle-CssClass="text-center" />
+                  <asp:BoundField DataField="descripcion" HeaderText="Descripción" />
+                  <asp:BoundField DataField="observ1" HeaderText="Observaciones" />
+                  <asp:TemplateField HeaderText="Si" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-si" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="1"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 1, "✓", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="No" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-no" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="0"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 0, "✗", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="P" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="P"><%# IIf(Convert.ToString(Eval("estatus")) = "P", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="E" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="E"><%# IIf(Convert.ToString(Eval("estatus")) = "E", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="D" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="D"><%# IIf(Convert.ToString(Eval("estatus")) = "D", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                </Columns>
+              </asp:GridView>
+            </div>
+            <div class="col-lg-6">
+              <h6 class="text-muted">Sustitución</h6>
+              <asp:GridView ID="gvMecSustitucion" runat="server" CssClass="table table-sm table-striped table-bordered ht-grid" AutoGenerateColumns="False" EmptyDataText="Sin registros" OnRowDataBound="gvHT_RowDataBound">
+                <Columns>
+                  <asp:BoundField DataField="cantidad" HeaderText="Cant" ItemStyle-Width="40px" ItemStyle-CssClass="text-center" />
+                  <asp:BoundField DataField="descripcion" HeaderText="Descripción" />
+                  <asp:BoundField DataField="numparte" HeaderText="Num. Parte" ItemStyle-Width="100px" />
+                  <asp:TemplateField HeaderText="Si" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-si" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="1"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 1, "✓", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="No" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-no" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="0"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 0, "✗", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="P" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="P"><%# IIf(Convert.ToString(Eval("estatus")) = "P", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="E" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="E"><%# IIf(Convert.ToString(Eval("estatus")) = "E", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="D" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="D"><%# IIf(Convert.ToString(Eval("estatus")) = "D", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                </Columns>
+              </asp:GridView>
+            </div>
+          </div>
+
+          <!-- GridViews de Hojalatería -->
+          <h6 class="fw-bold text-warning mb-2"><i class="bi bi-tools"></i> Hojalatería</h6>
+          <div class="row">
+            <div class="col-lg-6">
+              <h6 class="text-muted">Reparación</h6>
+              <asp:GridView ID="gvHojReparacion" runat="server" CssClass="table table-sm table-striped table-bordered ht-grid" AutoGenerateColumns="False" EmptyDataText="Sin registros" OnRowDataBound="gvHT_RowDataBound">
+                <Columns>
+                  <asp:BoundField DataField="cantidad" HeaderText="Cant" ItemStyle-Width="40px" ItemStyle-CssClass="text-center" />
+                  <asp:BoundField DataField="descripcion" HeaderText="Descripción" />
+                  <asp:BoundField DataField="observ1" HeaderText="Observaciones" />
+                  <asp:TemplateField HeaderText="Si" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-si" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="1"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 1, "✓", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="No" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-no" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="0"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 0, "✗", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="P" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="P"><%# IIf(Convert.ToString(Eval("estatus")) = "P", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="E" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="E"><%# IIf(Convert.ToString(Eval("estatus")) = "E", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="D" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="D"><%# IIf(Convert.ToString(Eval("estatus")) = "D", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                </Columns>
+              </asp:GridView>
+            </div>
+            <div class="col-lg-6">
+              <h6 class="text-muted">Sustitución</h6>
+              <asp:GridView ID="gvHojSustitucion" runat="server" CssClass="table table-sm table-striped table-bordered ht-grid" AutoGenerateColumns="False" EmptyDataText="Sin registros" OnRowDataBound="gvHT_RowDataBound">
+                <Columns>
+                  <asp:BoundField DataField="cantidad" HeaderText="Cant" ItemStyle-Width="40px" ItemStyle-CssClass="text-center" />
+                  <asp:BoundField DataField="descripcion" HeaderText="Descripción" />
+                  <asp:BoundField DataField="numparte" HeaderText="Num. Parte" ItemStyle-Width="100px" />
+                  <asp:TemplateField HeaderText="Si" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-si" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="1"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 1, "✓", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="No" ItemStyle-Width="30px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-no" data-id='<%# Eval("id") %>' data-field="autorizado" data-val="0"><%# IIf(Convert.ToInt32(Eval("autorizado")) = 0, "✗", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="P" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="P"><%# IIf(Convert.ToString(Eval("estatus")) = "P", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="E" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="E"><%# IIf(Convert.ToString(Eval("estatus")) = "E", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                  <asp:TemplateField HeaderText="D" ItemStyle-Width="25px" ItemStyle-CssClass="text-center">
+                    <ItemTemplate><span class="ht-toggle ht-status" data-id='<%# Eval("id") %>' data-field="estatus" data-val="D"><%# IIf(Convert.ToString(Eval("estatus")) = "D", "●", "") %></span></ItemTemplate>
+                  </asp:TemplateField>
+                </Columns>
+              </asp:GridView>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Subir Valuación Sin Autorizar (PDF) ===================== -->
+  <div class="modal fade" id="modalValSinAut" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Subir Valuación Sin Autorizar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Seleccione el archivo PDF</label>
+            <asp:FileUpload ID="fuValSinAut" runat="server" CssClass="form-control" ClientIDMode="Static" accept=".pdf" />
+            <div class="form-text">Se guardará como <strong>valsin.pdf</strong> en <em>4. VALUACION</em>.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <asp:LinkButton ID="btnUploadValSinAut" runat="server" CssClass="btn btn-primary" OnClick="btnUploadValSinAut_Click">Subir PDF</asp:LinkButton>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Ver Valuación Sin Autorizar ===================== -->
+  <div class="modal fade" id="modalVerValSinAut" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content" style="height:90vh;">
+        <div class="modal-header">
+          <h5 class="modal-title">Valuación Sin Autorizar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-0">
+          <iframe id="iframeValSinAut" style="width:100%;height:100%;border:0;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Subir Valuación Autorizada (PDF) ===================== -->
+  <div class="modal fade" id="modalValAutPdf" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Subir Valuación Autorizada</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Seleccione el archivo PDF</label>
+            <asp:FileUpload ID="fuValAutPdf" runat="server" CssClass="form-control" ClientIDMode="Static" accept=".pdf" />
+            <div class="form-text">Se guardará como <strong>valaut.pdf</strong> en <em>4. VALUACION</em>.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <asp:LinkButton ID="btnUploadValAutPdf" runat="server" CssClass="btn btn-primary" OnClick="btnUploadValAutPdf_Click">Subir PDF</asp:LinkButton>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Ver Valuación Autorizada ===================== -->
+  <div class="modal fade" id="modalVerValAutPdf" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content" style="height:90vh;">
+        <div class="modal-header">
+          <h5 class="modal-title">Valuación Autorizada</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-0">
+          <iframe id="iframeValAutPdf" style="width:100%;height:100%;border:0;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== MODAL: Diagnóstico (pantalla completa) ===================== -->
   <div class="modal fade" id="diagModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width:98vw;">
@@ -1300,7 +1685,7 @@
       }
       function abrirInventarioPM() {
           const iframe = document.getElementById('invFrame');
-          const modal = new bootstrap.Modal(document.getElementById('invModal'));
+          const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('invModal'));
           iframe.src = 'inventario.html';
           iframe.onload = () => {
               iframe.contentWindow.postMessage(
@@ -1323,7 +1708,7 @@
       function openInvViewer(src) {
           const f = document.getElementById('invFrame');
           f.src = src;
-          const m = new bootstrap.Modal(document.getElementById('invModal'));
+          const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('invModal'));
           m.show();
           const hid = document.getElementById('hidInvSrc');
           if (hid) hid.value = src;
@@ -1378,7 +1763,7 @@
           f.src = src;
           const hid = document.getElementById('hidViewerSrc');
           if (hid) hid.value = src;
-          const m = new bootstrap.Modal(document.getElementById('viewerModal'));
+          const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('viewerModal'));
           m.show();
       }
 
@@ -1436,15 +1821,15 @@
           const form = document.createElement('form');
           form.method = 'POST';
           form.action = '<%= ResolveUrl("~/DownloadFotosZip.ashx") %>';
-          const hid = document.createElement('input');
-          hid.type = 'hidden'; hid.name = 'id'; hid.value = '<%= lblId.Text %>';
-          form.appendChild(hid);
-          const hn = document.createElement('input');
-          hn.type = 'hidden'; hn.name = 'names'; hn.value = names;
-          form.appendChild(hn);
-          document.body.appendChild(form);
-          form.submit();
-          setTimeout(() => document.body.removeChild(form), 2000);
+        const hid = document.createElement('input');
+        hid.type = 'hidden'; hid.name = 'id'; hid.value = '<%= lblId.Text %>';
+      form.appendChild(hid);
+      const hn = document.createElement('input');
+      hn.type = 'hidden'; hn.name = 'names'; hn.value = names;
+      form.appendChild(hn);
+      document.body.appendChild(form);
+      form.submit();
+      setTimeout(() => document.body.removeChild(form), 2000);
       }
 
   </script>
@@ -1453,146 +1838,146 @@
 
 
   <script>
-      /* 4) Dropzone Principal (principal.jpg) con EXIF y resize */
-      async function readOrientation(file) {
-          return new Promise((resolve) => {
-              const fr = new FileReader();
-              fr.onload = function (e) {
-                  const view = new DataView(e.target.result);
-                  if (view.getUint16(0, false) !== 0xFFD8) return resolve(1);
-                  let offset = 2, length = view.byteLength;
-                  while (offset < length) {
-                      const marker = view.getUint16(offset, false); offset += 2;
-                      if (marker === 0xFFE1) {
-                          const exifLength = view.getUint16(offset, false); offset += 2;
-                          const exifStart = offset;
-                          if (view.getUint32(exifStart, false) !== 0x45786966) return resolve(1);
-                          const tiffOffset = exifStart + 6;
-                          const little = view.getUint16(tiffOffset, false) === 0x4949;
-                          const ifdOffset = view.getUint32(tiffOffset + 4, little);
-                          let dirStart = tiffOffset + ifdOffset;
-                          const entries = view.getUint16(dirStart, little); dirStart += 2;
-                          for (let i = 0; i < entries; i++) {
-                              const entry = dirStart + i * 12;
-                              const tag = view.getUint16(entry, little);
-                              if (tag === 0x0112) {
-                                  const val = view.getUint16(entry + 8, little);
-                                  return resolve(val || 1);
-                              }
-                          }
-                          return resolve(1);
-                      } else if ((marker & 0xFF00) !== 0xFF00) { break; }
-                      else { offset += view.getUint16(offset, false); }
-                  }
-                  resolve(1);
-              };
-              fr.readAsArrayBuffer(file.slice(0, 128 * 1024));
-          });
-      }
-      async function imageToCanvasFixed(file) {
-          const orientation = await readOrientation(file).catch(() => 1);
-          const bitmap = await createImageBitmap(file).catch(() => new Promise((res, rej) => {
-              const img = new Image(); img.onload = () => res(img); img.onerror = rej;
-              img.src = URL.createObjectURL(file);
-          }));
-          const w = bitmap.width || bitmap.naturalWidth;
-          const h = bitmap.height || bitmap.naturalHeight;
-          let cw = w, ch = h;
-          if (orientation === 6 || orientation === 8) { cw = h; ch = w; }
-          const canvas = document.createElement('canvas');
-          canvas.width = cw; canvas.height = ch;
-          const ctx = canvas.getContext('2d');
-          switch (orientation) {
-              case 3: ctx.translate(cw, ch); ctx.rotate(Math.PI); break;
-              case 6: ctx.translate(cw, 0); ctx.rotate(Math.PI / 2); break;
-              case 8: ctx.translate(0, ch); ctx.rotate(-Math.PI / 2); break;
-          }
-          ctx.drawImage(bitmap, 0, 0, w, h);
-          return canvas;
-      }
-      function canvasToJpegBlob(canvas, quality = 0.88) {
-          return new Promise((resolve) => canvas.toBlob(b => resolve(b), 'image/jpeg', quality));
-      }
-      function bust(src) {
-          if (!src) return '';
-          if (src.startsWith('data:')) return src;
-          const u = new URL(src, window.location.origin);
-          u.searchParams.set('v', Date.now().toString());
-          return u.pathname + u.search;
-      }
-
-      (function () {
-          const zone = document.getElementById('dropZone');
-          const input = document.getElementById('fileDrop');
-          const img = document.getElementById('imgPreview');
-          const delBtn = document.getElementById('btnEliminarPrincipal');
-          if (!zone || !input || !img) return;
-
-          input.setAttribute('accept', 'image/*');
-          input.setAttribute('capture', 'environment');
-
-          const uploadUrl = '<%= ResolveUrl("~/UploadPrincipal.ashx") %>';
-        const expedienteId = '<%= lblId.Text %>';
-        const carpetaRel = '<%= hidCarpeta.Value %>';
-
-          function setHover(on) {
-              zone.style.borderColor = on ? 'var(--brand-500)' : 'var(--brand-300)';
-              zone.style.background = on ? 'linear-gradient(135deg, var(--brand-050), var(--neutral-050))'
-                  : 'linear-gradient(135deg, var(--neutral-050), var(--brand-050))';
-          }
-          async function uploadBlobAsPrincipal(blob) {
-              const fd = new FormData();
-              fd.append('id', expedienteId || '');
-              fd.append('carpetaRel', carpetaRel || '');
-              fd.append('file', blob, 'principal.jpg');
-
-              document.querySelectorAll('.modal.show').forEach(m => bootstrap.Modal.getInstance(m)?.hide());
-              const r = await fetch(uploadUrl, { method: 'POST', body: fd });
-              const text = await r.text();
-              let j; try { j = JSON.parse(text); } catch { throw new Error('Respuesta no-JSON: ' + text); }
-              if (!j.ok) throw new Error(j.msg || 'Fallo al guardar');
-              return j.url || null;
-          }
-          async function processAndUpload(file) {
-              if (!file?.type?.startsWith('image/')) { alert('Selecciona una imagen.'); return; }
-              if (file.size > 10 * 1024 * 1024) { alert('Máximo 10 MB.'); return; }
-              try {
-                  const canvas = await imageToCanvasFixed(file);
-                  const MAX = 1600;
-                  let outCanvas = canvas;
-                  if (canvas.width > MAX || canvas.height > MAX) {
-                      const ratio = Math.min(MAX / canvas.width, MAX / canvas.height);
-                      const c2 = document.createElement('canvas');
-                      c2.width = Math.round(canvas.width * ratio);
-                      c2.height = Math.round(canvas.height * ratio);
-                      c2.getContext('2d').drawImage(canvas, 0, 0, c2.width, c2.height);
-                      outCanvas = c2;
-                  }
-                  const previewDataUrl = outCanvas.toDataURL('image/jpeg', 0.88);
-                  img.src = previewDataUrl;
-                  const blob = await canvasToJpegBlob(outCanvas, 0.88);
-                  const serverUrl = await uploadBlobAsPrincipal(blob);
-                  if (serverUrl) { img.src = bust(serverUrl); }
-                  if (delBtn) { delBtn.style.display = ''; delBtn.classList.remove('d-none'); }
-              } catch (err) {
-                  console.error(err);
-                  alert('Error subiendo la imagen: ' + err.message);
+    /* 4) Dropzone Principal (principal.jpg) con EXIF y resize */
+    async function readOrientation(file) {
+      return new Promise((resolve) => {
+        const fr = new FileReader();
+        fr.onload = function (e) {
+          const view = new DataView(e.target.result);
+          if (view.getUint16(0, false) !== 0xFFD8) return resolve(1);
+          let offset = 2, length = view.byteLength;
+          while (offset < length) {
+            const marker = view.getUint16(offset, false); offset += 2;
+            if (marker === 0xFFE1) {
+              const exifLength = view.getUint16(offset, false); offset += 2;
+              const exifStart = offset;
+              if (view.getUint32(exifStart, false) !== 0x45786966) return resolve(1);
+              const tiffOffset = exifStart + 6;
+              const little = view.getUint16(tiffOffset, false) === 0x4949;
+              const ifdOffset = view.getUint32(tiffOffset + 4, little);
+              let dirStart = tiffOffset + ifdOffset;
+              const entries = view.getUint16(dirStart, little); dirStart += 2;
+              for (let i = 0; i < entries; i++) {
+                const entry = dirStart + i * 12;
+                const tag = view.getUint16(entry, little);
+                if (tag === 0x0112) {
+                  const val = view.getUint16(entry + 8, little);
+                  return resolve(val || 1);
+                }
               }
+              return resolve(1);
+            } else if ((marker & 0xFF00) !== 0xFF00) { break; }
+            else { offset += view.getUint16(offset, false); }
           }
+          resolve(1);
+        };
+        fr.readAsArrayBuffer(file.slice(0, 128 * 1024));
+      });
+    }
+    async function imageToCanvasFixed(file) {
+      const orientation = await readOrientation(file).catch(() => 1);
+      const bitmap = await createImageBitmap(file).catch(() => new Promise((res, rej) => {
+        const img = new Image(); img.onload = () => res(img); img.onerror = rej;
+        img.src = URL.createObjectURL(file);
+      }));
+      const w = bitmap.width || bitmap.naturalWidth;
+      const h = bitmap.height || bitmap.naturalHeight;
+      let cw = w, ch = h;
+      if (orientation === 6 || orientation === 8) { cw = h; ch = w; }
+      const canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      const ctx = canvas.getContext('2d');
+      switch (orientation) {
+        case 3: ctx.translate(cw, ch); ctx.rotate(Math.PI); break;
+        case 6: ctx.translate(cw, 0); ctx.rotate(Math.PI / 2); break;
+        case 8: ctx.translate(0, ch); ctx.rotate(-Math.PI / 2); break;
+      }
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      return canvas;
+    }
+    function canvasToJpegBlob(canvas, quality = 0.88) {
+      return new Promise((resolve) => canvas.toBlob(b => resolve(b), 'image/jpeg', quality));
+    }
+    function bust(src) {
+      if (!src) return '';
+      if (src.startsWith('data:')) return src;
+      const u = new URL(src, window.location.origin);
+      u.searchParams.set('v', Date.now().toString());
+      return u.pathname + u.search;
+    }
 
-          zone.addEventListener('click', () => input.click());
-          zone.addEventListener('dragenter', e => { e.preventDefault(); setHover(true); });
-          zone.addEventListener('dragover', e => { e.preventDefault(); setHover(true); });
-          zone.addEventListener('dragleave', e => { e.preventDefault(); setHover(false); });
-          zone.addEventListener('drop', e => {
-              e.preventDefault(); setHover(false);
-              if (e.dataTransfer?.files?.length) processAndUpload(e.dataTransfer.files[0]);
-          });
-          input.addEventListener('change', function () {
-              if (this.files && this.files.length) processAndUpload(this.files[0]);
-              this.value = '';
-          });
-      })();
+    (function () {
+      const zone = document.getElementById('dropZone');
+      const input = document.getElementById('fileDrop');
+      const img = document.getElementById('imgPreview');
+      const delBtn = document.getElementById('btnEliminarPrincipal');
+      if (!zone || !input || !img) return;
+
+      input.setAttribute('accept', 'image/*');
+      input.setAttribute('capture', 'environment');
+
+      const uploadUrl = '<%= ResolveUrl("~/UploadPrincipal.ashx") %>';
+      const expedienteId = '<%= lblId.Text %>';
+      const carpetaRel  = '<%= hidCarpeta.Value %>';
+
+      function setHover(on) {
+        zone.style.borderColor = on ? 'var(--brand-500)' : 'var(--brand-300)';
+        zone.style.background  = on ? 'linear-gradient(135deg, var(--brand-050), var(--neutral-050))'
+                                    : 'linear-gradient(135deg, var(--neutral-050), var(--brand-050))';
+      }
+      async function uploadBlobAsPrincipal(blob) {
+        const fd = new FormData();
+        fd.append('id', expedienteId || '');
+        fd.append('carpetaRel', carpetaRel || '');
+        fd.append('file', blob, 'principal.jpg');
+
+        document.querySelectorAll('.modal.show').forEach(m => bootstrap.Modal.getInstance(m)?.hide());
+        const r = await fetch(uploadUrl, { method:'POST', body:fd });
+        const text = await r.text();
+        let j; try { j = JSON.parse(text); } catch { throw new Error('Respuesta no-JSON: ' + text); }
+        if (!j.ok) throw new Error(j.msg || 'Fallo al guardar');
+        return j.url || null;
+      }
+      async function processAndUpload(file) {
+        if (!file?.type?.startsWith('image/')) { alert('Selecciona una imagen.'); return; }
+        if (file.size > 10 * 1024 * 1024)      { alert('Máximo 10 MB.'); return; }
+        try {
+          const canvas = await imageToCanvasFixed(file);
+          const MAX = 1600;
+          let outCanvas = canvas;
+          if (canvas.width > MAX || canvas.height > MAX) {
+            const ratio = Math.min(MAX / canvas.width, MAX / canvas.height);
+            const c2 = document.createElement('canvas');
+            c2.width  = Math.round(canvas.width  * ratio);
+            c2.height = Math.round(canvas.height * ratio);
+            c2.getContext('2d').drawImage(canvas, 0, 0, c2.width, c2.height);
+            outCanvas = c2;
+          }
+          const previewDataUrl = outCanvas.toDataURL('image/jpeg', 0.88);
+          img.src = previewDataUrl;
+          const blob = await canvasToJpegBlob(outCanvas, 0.88);
+          const serverUrl = await uploadBlobAsPrincipal(blob);
+          if (serverUrl) { img.src = bust(serverUrl); }
+          if (delBtn) { delBtn.style.display = ''; delBtn.classList.remove('d-none'); }
+        } catch (err) {
+          console.error(err);
+          alert('Error subiendo la imagen: ' + err.message);
+        }
+      }
+
+      zone.addEventListener('click', () => input.click());
+      zone.addEventListener('dragenter', e => { e.preventDefault(); setHover(true);  });
+      zone.addEventListener('dragover',  e => { e.preventDefault(); setHover(true);  });
+      zone.addEventListener('dragleave', e => { e.preventDefault(); setHover(false); });
+      zone.addEventListener('drop', e => {
+        e.preventDefault(); setHover(false);
+        if (e.dataTransfer?.files?.length) processAndUpload(e.dataTransfer.files[0]);
+      });
+      input.addEventListener('change', function(){
+        if (this.files && this.files.length) processAndUpload(this.files[0]);
+        this.value='';
+      });
+    })();
   </script>
 
 <script>
@@ -1659,15 +2044,25 @@
                         ok = baseOk && invOk;
                     }
                 }
+            } else if (stripEl.id === 'stripVal') {
+                // Verificar los 5 tiles de valuación
+                ok = areEnabled([
+                    '#btnVerHojaTrabajo',
+                    '#btnVerValSinAut',
+                    '#btnVerValAutPdf',
+                    '#btnVerHojaTrabajoAut',
+                    '#btnVerSeguimientoCompl'
+                ]);
             } else {
                 ok = eyesAllEnabled(stripEl);
             }
             stripEl.classList.toggle('alert-pulse', !ok);
+            stripEl.classList.toggle('strip-danger', !ok);
             btnEl.classList.toggle('danger', !ok);
             btnEl.title = ok ? 'Todos los visores habilitados' : 'Faltan visores por habilitar';
 
-            // Aplicar blink al botón PROCESO DE RECEPCION
-            if (stripEl.id === 'strip') {
+            // Aplicar blink al botón
+            if (stripEl.id === 'strip' || stripEl.id === 'stripVal') {
                 btnEl.classList.toggle('blink-danger', !ok);
                 btnEl.classList.toggle('blink-success', ok);
             }
@@ -1770,6 +2165,37 @@
             } catch (e) { }
         };
 
+        // ---------- Mostrar/ocultar valuación (visible cuando diagnóstico completo) ----------
+        function refreshValVisibility() {
+            const valWrap = document.getElementById('valSection');
+            const valBtn = document.getElementById('btnToggleStripVal');
+            const valStrip = document.getElementById('stripVal');
+            if (!valWrap) return;
+
+            // Mostrar valuación cuando ambos tiles de diagnóstico están en verde
+            const tileMec = document.getElementById('tileMec');
+            const tileCol = document.getElementById('tileCol');
+            const chkMec = document.getElementById('chkMecSi');
+            const chkHoja = document.getElementById('chkHojaSi');
+
+            // Mostrar si: (tileMec verde Y chkMecSi) O (tileCol verde Y chkHojaSi)
+            const mecOk = tileMec && tileMec.classList.contains('ok') && chkMec && chkMec.checked;
+            const hojaOk = tileCol && tileCol.classList.contains('ok') && chkHoja && chkHoja.checked;
+
+            if (mecOk || hojaOk) {
+                valWrap.classList.remove('d-none');
+                if (valBtn && valStrip) refreshIndicatorsFor(valStrip, valBtn);
+            } else {
+                if (valBtn && valStrip && !valStrip.classList.contains('is-collapsed')) {
+                    collapse(valStrip, valBtn, true);
+                }
+                valWrap.classList.add('d-none');
+            }
+        }
+
+        // Expone refresco de valuación
+        window.__refreshValVisibility = refreshValVisibility;
+
         // Expone refresco para que el servidor pueda llamarlo
         window.__refreshDiagVisibility = refreshDiagVisibility;
 
@@ -1830,10 +2256,12 @@
         document.addEventListener('DOMContentLoaded', function () {
             initAllToggles();
             ensureDiagTimer();
+            refreshValVisibility();
         });
         window.addEventListener('pageshow', function () {
             initAllToggles();
             refreshDiagVisibility();
+            refreshValVisibility();
             ensureDiagTimer();
         });
 
@@ -1843,6 +2271,7 @@
                 prm.add_endRequest(() => setTimeout(() => {
                     initAllToggles();
                     refreshDiagVisibility();
+                    refreshValVisibility();
                     ensureDiagTimer();
                 }, 60));
             } catch (e) { }
@@ -1855,320 +2284,339 @@
 
 
   <script>
-      /* 7) Diagnóstico: abrir páginas hijas + postMessage */
-      function getExpedienteData() {
-          function gt(id) { const el = document.getElementById(id); return el ? (el.textContent || el.innerText || '').trim() : ''; }
-          return {
-              id: gt('lblId'),
-              carpeta: (document.getElementById('hidCarpeta')?.value || gt('lblCarpeta')),
-              expediente: gt('lblExpediente'),
-              siniestro: gt('lblSiniestro'),
-              asegurado: gt('lblAsegurado'),
-              telefono: gt('lblTelefono'),
-              correo: gt('lblCorreo'),
-              reporte: gt('lblReporte'),
-              vehiculo: gt('lblVehiculo'),
-              fechaCreacion: gt('lblFechaCreacion'),
-              diasTranscurridos: gt('lblDiasTranscurridos')
-          };
-      }
-      function openDiagPage(pageUrl) {
-          const iframe = document.getElementById('diagFrame');
-          const modal = new bootstrap.Modal(document.getElementById('diagModal'));
-
-          const d = getExpedienteData();
-          const qs = new URLSearchParams(d).toString();
-          const finalUrl = pageUrl + '?' + qs;
-
-          iframe.src = finalUrl;
-          iframe.onload = () => {
-              try {
-                  iframe.contentWindow.postMessage({ type: 'EXP_PREFILL', payload: d }, window.location.origin);
-              } catch (e) { console.warn('postMessage falló:', e); }
-          };
-
-          modal.show();
-          const hid = document.getElementById('hidDiagSrc');
-          if (hid) hid.value = finalUrl;
-      }
-      window.addEventListener('message', (e) => {
-          if (e.origin !== window.location.origin) return;
-          if (e.data?.type === 'EXP_REQUEST') {
-              const frame = document.getElementById('diagFrame');
-              frame?.contentWindow?.postMessage({ type: 'EXP_PREFILL', payload: getExpedienteData() }, window.location.origin);
-          }
+    /* 7) Diagnóstico: abrir páginas hijas + postMessage */
+    function getExpedienteData() {
+      function gt(id) { const el = document.getElementById(id); return el ? (el.textContent || el.innerText || '').trim() : ''; }
+      return {
+        id: gt('lblId'),
+        carpeta: (document.getElementById('hidCarpeta')?.value || gt('lblCarpeta')),
+        expediente: gt('lblExpediente'),
+        siniestro: gt('lblSiniestro'),
+        asegurado: gt('lblAsegurado'),
+        telefono: gt('lblTelefono'),
+        correo: gt('lblCorreo'),
+        reporte: gt('lblReporte'),
+        vehiculo: gt('lblVehiculo'),
+        fechaCreacion: gt('lblFechaCreacion'),
+        diasTranscurridos: gt('lblDiasTranscurridos')
+      };
+    }
+    function openDiagPage(pageUrl) {
+      // Destruir TODOS los modales (no solo los visibles) antes de abrir diagModal
+      document.querySelectorAll('.modal').forEach(function(m) {
+        if (m.id === 'diagModal') return; // No destruir el que vamos a abrir
+        var instance = bootstrap.Modal.getInstance(m);
+        if (instance) {
+          instance.dispose();
+        }
+        m.classList.remove('show');
+        m.style.display = '';
+        m.removeAttribute('aria-modal');
+        m.removeAttribute('role');
       });
+      // Limpiar backdrops huérfanos
+      document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+
+      const iframe = document.getElementById('diagFrame');
+      const modalEl = document.getElementById('diagModal');
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+      const d = getExpedienteData();
+      const qs = new URLSearchParams(d).toString();
+      const finalUrl = pageUrl + '?' + qs;
+
+      iframe.src = finalUrl;
+      iframe.onload = () => {
+        try {
+          iframe.contentWindow.postMessage({ type: 'EXP_PREFILL', payload: d }, window.location.origin);
+        } catch (e) { console.warn('postMessage falló:', e); }
+      };
+
+      modal.show();
+      const hid = document.getElementById('hidDiagSrc');
+      if (hid) hid.value = finalUrl;
+    }
+    window.addEventListener('message', (e) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === 'EXP_REQUEST') {
+        const frame = document.getElementById('diagFrame');
+        frame?.contentWindow?.postMessage({ type: 'EXP_PREFILL', payload: getExpedienteData() }, window.location.origin);
+      }
+    });
   </script>
 
   <script>
-      // === Firmas: dibujar con mouse/touch ===
-      (function () {
-          function setupSigCanvas(id) {
-              const c = document.getElementById(id);
-              if (!c) return;
-              const ctx = c.getContext('2d');
-              ctx.lineWidth = 2.0;
-              ctx.lineCap = 'round';
-              ctx.lineJoin = 'round';
+    // === Firmas: dibujar con mouse/touch ===
+    (function () {
+      function setupSigCanvas(id) {
+        const c = document.getElementById(id);
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        ctx.lineWidth = 2.0;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
 
-              let drawing = false, lastX = 0, lastY = 0;
+        let drawing = false, lastX = 0, lastY = 0;
 
-              function pos(e) {
-                  const r = c.getBoundingClientRect();
-                  if (e.touches && e.touches.length) {
-                      return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
-                  }
-                  return { x: e.clientX - r.left, y: e.clientY - r.top };
-              }
+        function pos(e) {
+          const r = c.getBoundingClientRect();
+          if (e.touches && e.touches.length) {
+            return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+          }
+          return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
 
-              function start(e) { e.preventDefault(); drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; }
-              function move(e) {
-                  if (!drawing) return;
-                  const p = pos(e);
-                  ctx.beginPath();
-                  ctx.moveTo(lastX, lastY);
-                  ctx.lineTo(p.x, p.y);
-                  ctx.stroke();
-                  lastX = p.x; lastY = p.y;
-              }
-              function end() { drawing = false; }
+        function start(e) { e.preventDefault(); drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; }
+        function move(e) {
+          if (!drawing) return;
+          const p = pos(e);
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(p.x, p.y);
+          ctx.stroke();
+          lastX = p.x; lastY = p.y;
+        }
+        function end() { drawing = false; }
 
-              c.addEventListener('mousedown', start);
-              c.addEventListener('mousemove', move);
-              c.addEventListener('mouseup', end);
-              c.addEventListener('mouseleave', end);
+        c.addEventListener('mousedown', start);
+        c.addEventListener('mousemove', move);
+        c.addEventListener('mouseup', end);
+        c.addEventListener('mouseleave', end);
 
-              c.addEventListener('touchstart', start, { passive: false });
-              c.addEventListener('touchmove', move, { passive: false });
-              c.addEventListener('touchend', end);
+        c.addEventListener('touchstart', start, { passive: false });
+        c.addEventListener('touchmove', move, { passive: false });
+        c.addEventListener('touchend', end);
+      }
+
+      window.clearCanvas = function (id) {
+        const c = document.getElementById(id);
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, c.width, c.height);
+      };
+
+      document.addEventListener('DOMContentLoaded', function () {
+        setupSigCanvas('sigCli');
+        setupSigCanvas('sigSup');
+      });
+
+      window.pushCtSignatures = function () {
+        try {
+          const c1 = document.getElementById('sigCli');
+          const c2 = document.getElementById('sigSup');
+          const hf1 = document.getElementById('hfFirmaCliente');
+          const hf2 = document.getElementById('hfFirmaSupervisor');
+
+          function isBlank(canvas) {
+            const ctx = canvas.getContext('2d');
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            for (let i = 3; i < data.length; i += 4) { if (data[i] !== 0) return false; }
+            return true;
           }
 
-          window.clearCanvas = function (id) {
-              const c = document.getElementById(id);
-              if (!c) return;
-              const ctx = c.getContext('2d');
-              ctx.clearRect(0, 0, c.width, c.height);
-          };
-
-          document.addEventListener('DOMContentLoaded', function () {
-              setupSigCanvas('sigCli');
-              setupSigCanvas('sigSup');
-          });
-
-          window.pushCtSignatures = function () {
-              try {
-                  const c1 = document.getElementById('sigCli');
-                  const c2 = document.getElementById('sigSup');
-                  const hf1 = document.getElementById('hfFirmaCliente');
-                  const hf2 = document.getElementById('hfFirmaSupervisor');
-
-                  function isBlank(canvas) {
-                      const ctx = canvas.getContext('2d');
-                      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-                      for (let i = 3; i < data.length; i += 4) { if (data[i] !== 0) return false; }
-                      return true;
-                  }
-
-                  if (hf1) hf1.value = (c1 && !isBlank(c1)) ? c1.toDataURL('image/png') : '';
-                  if (hf2) hf2.value = (c2 && !isBlank(c2)) ? c2.toDataURL('image/png') : '';
-              } catch (e) { console.warn(e); }
-              return true;
-          };
-      })();
+          if (hf1) hf1.value = (c1 && !isBlank(c1)) ? c1.toDataURL('image/png') : '';
+          if (hf2) hf2.value = (c2 && !isBlank(c2)) ? c2.toDataURL('image/png') : '';
+        } catch (e) { console.warn(e); }
+        return true;
+      };
+    })();
   </script>
 
   <!-- ===== Pantalla completa en móvil para el modal de múltiples ===== -->
   <script>
-      (() => {
-          const modal = document.getElementById('modalMultiplesPresup');
-          if (!modal) return;
-          const dialog = modal.querySelector('.modal-dialog');
+    (() => {
+      const modal = document.getElementById('modalMultiplesPresup');
+      if (!modal) return;
+      const dialog = modal.querySelector('.modal-dialog');
 
-          function isHandheld() {
-              return window.matchMedia('(pointer:coarse)').matches ||
-                  /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent);
-          }
+      function isHandheld() {
+        return window.matchMedia('(pointer:coarse)').matches ||
+               /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      }
 
-          modal.addEventListener('show.bs.modal', () => {
-              if (isHandheld() && dialog) dialog.classList.add('modal-fullscreen');
-          });
-          modal.addEventListener('hidden.bs.modal', () => {
-              dialog?.classList.remove('modal-fullscreen');
-          });
-      })();
+      modal.addEventListener('show.bs.modal', () => {
+        if (isHandheld() && dialog) dialog.classList.add('modal-fullscreen');
+      });
+      modal.addEventListener('hidden.bs.modal', () => {
+        dialog?.classList.remove('modal-fullscreen');
+      });
+    })();
   </script>
 
   <!-- ===== FOTOS INGRESO: DnD + File Picker + limpieza + API para cámara ===== -->
   <script>
-      (() => {
-          const zone = document.getElementById('dropZonePresup');
-          const input = document.getElementById('fuMultiplesPresup');
-          const thumbs = document.getElementById('thumbsPresup');
-          const btnSave = document.getElementById('btnGuardarMultiplesPresup');
-          const progressWrap = document.getElementById('fotosPresupProgressWrap');
-          const progressBar = document.getElementById('fotosPresupProgressBar');
-          const statusOk = document.getElementById('fotosPresupStatus');
-          const modal = document.getElementById('modalMultiplesPresup');
+    (() => {
+      const zone         = document.getElementById('dropZonePresup');
+      const input        = document.getElementById('fuMultiplesPresup');
+      const thumbs       = document.getElementById('thumbsPresup');
+      const btnSave      = document.getElementById('btnGuardarMultiplesPresup');
+      const progressWrap = document.getElementById('fotosPresupProgressWrap');
+      const progressBar  = document.getElementById('fotosPresupProgressBar');
+      const statusOk     = document.getElementById('fotosPresupStatus');
+      const modal        = document.getElementById('modalMultiplesPresup');
 
-          if (!zone || !input || !thumbs) return;
-          if (input.dataset.hooked === '1') return;
-          input.dataset.hooked = '1';
+      if (!zone || !input || !thumbs) return;
+      if (input.dataset.hooked === '1') return;
+      input.dataset.hooked = '1';
 
-          function enableSave() { btnSave && (btnSave.disabled = !(input.files && input.files.length)); }
-          function showProgress30() {
-              if (!progressWrap || !progressBar) return;
-              progressWrap.classList.remove('d-none');
-              progressBar.classList.add('progress-bar-animated');
-              progressBar.style.width = '30%';
-              progressBar.setAttribute('aria-valuenow', '30');
-              progressBar.textContent = '30%';
-              statusOk?.classList.add('d-none');
-          }
-          function resetProgress() {
-              if (!progressWrap || !progressBar) return;
-              progressBar.classList.remove('progress-bar-animated');
-              progressBar.style.width = '0%';
-              progressBar.setAttribute('aria-valuenow', '0');
-              progressBar.textContent = '0%';
-              progressWrap.classList.add('d-none');
-              statusOk?.classList.add('d-none');
-          }
+      function enableSave() { btnSave && (btnSave.disabled = !(input.files && input.files.length)); }
+      function showProgress30() {
+        if (!progressWrap || !progressBar) return;
+        progressWrap.classList.remove('d-none');
+        progressBar.classList.add('progress-bar-animated');
+        progressBar.style.width = '30%';
+        progressBar.setAttribute('aria-valuenow', '30');
+        progressBar.textContent = '30%';
+        statusOk?.classList.add('d-none');
+      }
+      function resetProgress() {
+        if (!progressWrap || !progressBar) return;
+        progressBar.classList.remove('progress-bar-animated');
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', '0');
+        progressBar.textContent = '0%';
+        progressWrap.classList.add('d-none');
+        statusOk?.classList.add('d-none');
+      }
 
-          // Acumulador de archivos
-          let accumulatedFiles = [];
-          let isUpdatingInput = false;
+      // Acumulador de archivos
+      let accumulatedFiles = [];
+      let isUpdatingInput = false;
 
-          function updateInputFromAccumulator() {
-              isUpdatingInput = true;
-              const dt = new DataTransfer();
-              accumulatedFiles.forEach(f => dt.items.add(f));
-              input.files = dt.files;
-              isUpdatingInput = false;
-          }
+      function updateInputFromAccumulator() {
+        isUpdatingInput = true;
+        const dt = new DataTransfer();
+        accumulatedFiles.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+        isUpdatingInput = false;
+      }
 
-          function removeFileAtIndex(index) {
-              accumulatedFiles.splice(index, 1);
-              updateInputFromAccumulator();
-              rebuildThumbs(accumulatedFiles);
-              enableSave();
-              if (accumulatedFiles.length === 0) resetProgress();
-          }
-          function rebuildThumbs(fileList) {
-              thumbs.innerHTML = '';
-              Array.from(fileList || []).forEach((file, i) => {
-                  if (!file.type || !file.type.startsWith('image/')) return;
+      function removeFileAtIndex(index) {
+        accumulatedFiles.splice(index, 1);
+        updateInputFromAccumulator();
+        rebuildThumbs(accumulatedFiles);
+        enableSave();
+        if (accumulatedFiles.length === 0) resetProgress();
+      }
+      function rebuildThumbs(fileList) {
+        thumbs.innerHTML = '';
+        Array.from(fileList || []).forEach((file, i) => {
+          if (!file.type || !file.type.startsWith('image/')) return;
 
-                  const wrap = document.createElement('div');
-                  wrap.className = 'thumb-wrap';
+          const wrap = document.createElement('div');
+          wrap.className = 'thumb-wrap';
 
-                  const deleteBtn = document.createElement('span');
-                  deleteBtn.className = 'thumb-delete';
-                  deleteBtn.innerHTML = '&times;';
-                  deleteBtn.title = 'Eliminar';
-                  deleteBtn.onclick = (e) => {
-                      e.stopPropagation();
-                      removeFileAtIndex(i);
-                  };
-
-                  const img = document.createElement('img');
-                  img.className = 'thumb';
-                  img.alt = file.name || `presup${i + 1}.jpg`;
-                  img.src = URL.createObjectURL(file);
-                  img.onload = () => URL.revokeObjectURL(img.src);
-
-                  const name = document.createElement('div');
-                  name.className = 'thumb-name';
-                  name.textContent = file.name || `presup${i + 1}.jpg`;
-
-                  wrap.appendChild(deleteBtn);
-                  wrap.appendChild(img);
-                  wrap.appendChild(name);
-                  thumbs.appendChild(wrap);
-              });
-          }
-          function filesFromDataTransfer(dt) {
-              if (dt.items && dt.items.length) {
-                  const out = [];
-                  for (const it of dt.items) {
-                      if (it.kind === 'file') {
-                          const f = it.getAsFile();
-                          if (f) out.push(f);
-                      }
-                  }
-                  return out;
-              }
-              return Array.from(dt.files || []);
-          }
-          function appendFiles(newFiles) {
-              Array.from(newFiles || []).forEach(f => {
-                  if (f && f.type && f.type.startsWith('image/')) {
-                      accumulatedFiles.push(f);
-                  }
-              });
-              updateInputFromAccumulator();
-              rebuildThumbs(accumulatedFiles);
-              enableSave();
-              showProgress30();
-          }
-
-          // File picker - acumular archivos
-          input.addEventListener('change', () => {
-              if (isUpdatingInput) return; // Evitar duplicados por cambio programático
-              const newFiles = Array.from(input.files || []);
-              if (newFiles.length === 0) return;
-              appendFiles(newFiles);
-          });
-
-          // DnD Global (evitar que el navegador abra la imagen)
-          ['dragover', 'drop'].forEach(evt =>
-              document.addEventListener(evt, e => e.preventDefault(), false)
-          );
-
-          // DnD zona
-          zone.addEventListener('click', () => input.click());
-          ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => {
-              e.preventDefault();
-              if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
-              zone.classList.add('dnd-over');
-          }));
-          ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => {
-              e.preventDefault();
-              zone.classList.remove('dnd-over');
-          }));
-          zone.addEventListener('drop', e => {
-              const files = filesFromDataTransfer(e.dataTransfer || {});
-              if (files.length) appendFiles(files);
-          });
-
-          // Limpieza al cerrar
-          modal?.addEventListener('hidden.bs.modal', () => {
-              thumbs.innerHTML = '';
-              accumulatedFiles = [];
-              resetProgress();
-              input.value = '';
-              enableSave();
-          });
-
-          // API pública para la cámara
-          window.__appendFotoIngreso = function (file) {
-              appendFiles([file]);
+          const deleteBtn = document.createElement('span');
+          deleteBtn.className = 'thumb-delete';
+          deleteBtn.innerHTML = '&times;';
+          deleteBtn.title = 'Eliminar';
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeFileAtIndex(i);
           };
 
-          // Detectar cuando las fotos se guardaron exitosamente (después del postback)
-          if (statusOk && !statusOk.classList.contains('d-none')) {
-              // Ocultar el status inmediatamente para evitar re-disparos
-              statusOk.classList.add('d-none');
+          const img = document.createElement('img');
+          img.className = 'thumb';
+          img.alt = file.name || `presup${i + 1}.jpg`;
+          img.src = URL.createObjectURL(file);
+          img.onload = () => URL.revokeObjectURL(img.src);
 
-              // Cerrar modal si está abierto
-              setTimeout(() => {
-                  const modalInstance = bootstrap.Modal.getInstance(modal);
-                  if (modalInstance) {
-                      modalInstance.hide();
-                  }
-                  alert('FOTOS GUARDADAS EXITOSAMENTE');
-              }, 100);
+          const name = document.createElement('div');
+          name.className = 'thumb-name';
+          name.textContent = file.name || `presup${i + 1}.jpg`;
+
+          wrap.appendChild(deleteBtn);
+          wrap.appendChild(img);
+          wrap.appendChild(name);
+          thumbs.appendChild(wrap);
+        });
+      }
+      function filesFromDataTransfer(dt) {
+        if (dt.items && dt.items.length) {
+          const out = [];
+          for (const it of dt.items) {
+            if (it.kind === 'file') {
+              const f = it.getAsFile();
+              if (f) out.push(f);
+            }
           }
-      })();
+          return out;
+        }
+        return Array.from(dt.files || []);
+      }
+      function appendFiles(newFiles) {
+        Array.from(newFiles || []).forEach(f => {
+          if (f && f.type && f.type.startsWith('image/')) {
+            accumulatedFiles.push(f);
+          }
+        });
+        updateInputFromAccumulator();
+        rebuildThumbs(accumulatedFiles);
+        enableSave();
+        showProgress30();
+      }
+
+      // File picker - acumular archivos
+      input.addEventListener('change', () => {
+        if (isUpdatingInput) return; // Evitar duplicados por cambio programático
+        const newFiles = Array.from(input.files || []);
+        if (newFiles.length === 0) return;
+        appendFiles(newFiles);
+      });
+
+      // DnD Global (evitar que el navegador abra la imagen)
+      ['dragover','drop'].forEach(evt =>
+        document.addEventListener(evt, e => e.preventDefault(), false)
+      );
+
+      // DnD zona
+      zone.addEventListener('click', () => input.click());
+      ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        zone.classList.add('dnd-over');
+      }));
+      ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault();
+        zone.classList.remove('dnd-over');
+      }));
+      zone.addEventListener('drop', e => {
+        const files = filesFromDataTransfer(e.dataTransfer || {});
+        if (files.length) appendFiles(files);
+      });
+
+      // Limpieza al cerrar
+      modal?.addEventListener('hidden.bs.modal', () => {
+        thumbs.innerHTML = '';
+        accumulatedFiles = [];
+        resetProgress();
+        input.value = '';
+        enableSave();
+      });
+
+      // API pública para la cámara
+      window.__appendFotoIngreso = function(file) {
+        appendFiles([file]);
+      };
+
+      // Detectar cuando las fotos se guardaron exitosamente (después del postback)
+      if (statusOk && !statusOk.classList.contains('d-none')) {
+        // Ocultar el status inmediatamente para evitar re-disparos
+        statusOk.classList.add('d-none');
+
+        // Cerrar modal si está abierto
+        setTimeout(() => {
+          const modalInstance = bootstrap.Modal.getInstance(modal);
+          if (modalInstance) {
+            modalInstance.hide();
+          }
+          alert('FOTOS GUARDADAS EXITOSAMENTE');
+        }, 100);
+      }
+    })();
   </script>
 
   <!-- ===== CÁMARA: usa la API unificada para agregar fotos ===== -->
@@ -2564,7 +3012,7 @@
             window.openFullscreenOverlay = function(src) {
                 fsImage.src = src;
                 reset();
-                const bsModal = new bootstrap.Modal(modal);
+                const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
                 bsModal.show();
             };
 
@@ -2657,9 +3105,9 @@
 
                 flag.classList.toggle('on', !!checked);
                 flag.classList.toggle('off', !checked);
-                ico.classList.toggle('bi-check-circle-fill', !!checked);
-                ico.classList.toggle('bi-x-circle-fill', !checked);
-                txt.textContent = checked ? 'Con daño' : 'Sin Daño';
+                ico.classList.toggle('bi-toggle-on', !!checked);
+                ico.classList.toggle('bi-toggle-off', !checked);
+                txt.textContent = checked ? 'Habilitado' : 'Deshabilitado';
             }
 
             function applyDiagGateUI() {
@@ -2670,10 +3118,37 @@
 
                 // Bloquear/permitir clic visualmente (pointer-events: none ya existe en .disabled)
                 const lnkM = document.querySelector('a#<%= btnDiagnosticoMecanica.ClientID %>');
-      const lnkH = document.querySelector('a#<%= btnDiagnosticoHojalateria.ClientID %>');
-    if(lnkM) lnkM.classList.toggle('disabled', !mec);
-    if(lnkH) lnkH.classList.toggle('disabled', !hoja);
-  }
+                const lnkH = document.querySelector('a#<%= btnDiagnosticoHojalateria.ClientID %>');
+                if(lnkM) lnkM.classList.toggle('disabled', !mec);
+                if(lnkH) lnkH.classList.toggle('disabled', !hoja);
+
+                // Actualizar estado del botón PROCESO DE DIAGNOSTICO y el contenedor
+                const btnDiag = document.getElementById('btnToggleStripDiag');
+                const stripDiag = document.getElementById('stripDiag');
+                const tileMec = document.getElementById('tileMec');
+                const tileCol = document.getElementById('tileCol');
+
+                const mecOk = tileMec && tileMec.classList.contains('ok');
+                const hojaOk = tileCol && tileCol.classList.contains('ok');
+
+                // Si algún checkbox está activo pero su tile no está verde -> parpadear rojo
+                const mecPending = mec && !mecOk;
+                const hojaPending = hoja && !hojaOk;
+                const anyPending = mecPending || hojaPending;
+
+                // Si hay al menos un checkbox activo y todos los activos están verdes -> verde
+                const anyActive = mec || hoja;
+                const allActiveOk = (!mec || mecOk) && (!hoja || hojaOk) && anyActive;
+
+                if (btnDiag) {
+                    btnDiag.classList.toggle('blink-danger', anyPending);
+                    btnDiag.classList.toggle('blink-success', allActiveOk && !anyPending);
+                }
+
+                if (stripDiag) {
+                    stripDiag.classList.toggle('strip-danger', anyPending);
+                }
+            }
 
   function saveGate(area, enabled){
     const idTxt = (document.getElementById('lblId')?.textContent || document.getElementById('hidId')?.value || '0').trim();
@@ -2702,6 +3177,9 @@
 
             document.addEventListener('DOMContentLoaded', applyDiagGateUI);
 
+            // Exponer globalmente para que pueda ser llamada desde otros scripts
+            window.applyDiagGateUI = applyDiagGateUI;
+
             // Endurecemos openDiagPage: si está en rojo, no abrimos
             const __origOpenDiagPage = window.openDiagPage;
             window.openDiagPage = function (pageUrl) {
@@ -2720,29 +3198,132 @@
 
    <script>
        document.addEventListener('DOMContentLoaded', function () {
-           const modalEl = document.getElementById('diagModal'); // id real de tu modal
+           const modalEl = document.getElementById('diagModal');
            if (!modalEl) return;
-
-           let diagNeedsReload = false;
-
            modalEl.addEventListener('hidden.bs.modal', function () {
-               // Solo recarga si el hijo avisó que hay cambios; si no, limpia el iframe.
-               if (diagNeedsReload) {
-                   diagNeedsReload = false;
-                   window.location.reload();
-               } else {
-                   const frame = document.getElementById('diagFrame');
-                   if (frame) frame.src = '';
-               }
+               // Limpiar backdrops huérfanos
+               document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
+               // Limpiar body
+               document.body.classList.remove('modal-open');
+               document.body.style.overflow = '';
+               document.body.style.paddingRight = '';
+               // NO recargar la página - quedarse donde está
            });
 
            // (opcional) si el hijo avisa:
            window.addEventListener('message', function (e) {
                if (e.origin !== window.location.origin) return;
                if (e.data && e.data.type === 'MECA_UPDATED') {
-                   diagNeedsReload = true;
+                   // Actualizar el label de fin diagnóstico sin recargar
+                   const lbl = document.getElementById('lblDiagFinMecanica');
+                   if (lbl && e.data.finmec) {
+                       lbl.textContent = e.data.finmec;
+                   }
+                   // Pintar el tile de verde (usar clase ok como los demás)
+                   const tile = document.getElementById('tileMec');
+                   if (tile && e.data.finmec) {
+                       if (!tile.classList.contains('ok')) {
+                           tile.classList.add('ok');
+                       }
+                   }
+                   // Actualizar estado del botón de diagnóstico
+                   if (typeof applyDiagGateUI === 'function') {
+                       applyDiagGateUI();
+                   }
+                   // Refrescar visibilidad de valuación
+                   if (typeof refreshValVisibility === 'function') {
+                       refreshValVisibility();
+                   }
+               }
+               if (e.data && e.data.type === 'HOJA_UPDATED') {
+                   // Actualizar el label de fin diagnóstico sin recargar
+                   const lbl = document.getElementById('lblDiagFinColision');
+                   if (lbl && e.data.fincol) {
+                       lbl.textContent = e.data.fincol;
+                   }
+                   // Pintar el tile de verde (usar clase ok como los demás)
+                   const tile = document.getElementById('tileCol');
+                   if (tile && e.data.fincol) {
+                       if (!tile.classList.contains('ok')) {
+                           tile.classList.add('ok');
+                       }
+                   }
+                   // Actualizar estado visual del flag
+                   const flag = document.getElementById('flagHoja');
+                   const ico = document.getElementById('icoHoja');
+                   const chk = document.getElementById('chkHojaSi');
+                   if (flag) flag.className = 'diag-flag on';
+                   if (ico) ico.className = 'bi bi-toggle-on fs-4';
+                   if (chk) chk.checked = true;
+                   // Actualizar estado del botón de diagnóstico
+                   if (typeof applyDiagGateUI === 'function') {
+                       applyDiagGateUI();
+                   }
+                   // Refrescar visibilidad de valuación
+                   if (typeof refreshValVisibility === 'function') {
+                       refreshValVisibility();
+                   }
                }
            });
+       });
+   </script>
+
+   <script>
+       // Toggle handlers para Hoja de Trabajo
+       document.addEventListener('click', function (e) {
+           const toggle = e.target.closest('.ht-toggle');
+           if (!toggle) {
+               // Debug: ver si click llega pero no encuentra toggle
+               if (e.target.closest('#modalHojaTrabajo')) {
+                   console.log('Click en modal pero no en toggle:', e.target);
+               }
+               return;
+           }
+
+           console.log('Toggle encontrado:', toggle);
+
+           const id = toggle.dataset.id;
+           const field = toggle.dataset.field;
+           const val = toggle.dataset.val;
+
+           console.log('Datos:', { id, field, val });
+
+           // Encontrar la fila
+           const row = toggle.closest('tr');
+           if (!row) {
+               console.log('No se encontró la fila');
+               return;
+           }
+
+           if (field === 'autorizado') {
+               // Toggle Si/No - mutuamente excluyente
+               const siSpan = row.querySelector('.ht-si');
+               const noSpan = row.querySelector('.ht-no');
+
+               if (val === '1') {
+                   siSpan.textContent = '✓';
+                   noSpan.textContent = '';
+               } else {
+                   siSpan.textContent = '';
+                   noSpan.textContent = '✗';
+               }
+           } else if (field === 'estatus') {
+               // Toggle P/E/D - mutuamente excluyente
+               const statusSpans = row.querySelectorAll('.ht-status');
+               statusSpans.forEach(span => {
+                   span.textContent = span.dataset.val === val ? '●' : '';
+               });
+           }
+
+           // Guardar en la base de datos
+           fetch('UpdateRefaccion.ashx?id=' + id + '&field=' + field + '&val=' + val)
+               .then(r => r.json())
+               .then(data => {
+                   if (!data.ok) {
+                       console.error('Error al guardar:', data.error);
+                   }
+               })
+               .catch(err => console.error('Error:', err));
        });
    </script>
 
