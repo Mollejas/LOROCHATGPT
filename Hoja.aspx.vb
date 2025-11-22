@@ -400,7 +400,11 @@ END"
         Dim idStr As String = If(Not IsPostBack, Request.QueryString("id"), hidId.Value)
         If Integer.TryParse(idStr, admId) Then
             PintarTileMecanica(admId)
+            PintarTileColision(admId)
             CargarFinesDiagnostico(admId)
+            ProcesarValuacion(admId)
+            CargarFechasValuacion(admId)
+            PintarTilesValuacion()
         End If
         ' <<< ADD
 
@@ -432,6 +436,19 @@ END"
     Private _marca As String = "", _version As String = "", _anio As String = "", _placas As String = ""
     Private _telefono As String = "", _correo As String = "", _siniestro As String = ""
     Private lblInvGruaInfo As Object
+    Private ddlValRef1 As Object
+    Private txtPassValRef1 As TextBox
+    Private litValRef1 As Literal
+    Private ddlValRef2 As DropDownList
+    Private txtPassValRef2 As TextBox
+    Private litValRef2 As Literal
+    Private ddlValRef3 As DropDownList
+    Private txtPassValRef3 As TextBox
+    Private litValRef3 As Literal
+    Private btnValidarRef3 As Object
+    Private hfHTValidado As Object
+    Private ReadOnly btnValidarRef1 As Object
+    Private ReadOnly btnValidarRef2 As Object
 
     Private Sub CargarAdmision(id As Integer)
         Dim cs = ConfigurationManager.ConnectionStrings("DaytonaDB")
@@ -991,7 +1008,7 @@ $"(function(){{
         Dim js As String =
             "var first=document.querySelector('#fotosGrid .grid-thumb');" &
             "if(first){document.getElementById('galleryBigImg').src=first.getAttribute('data-full')||first.src;}" &
-            "new bootstrap.Modal(document.getElementById('fotosModal')).show();"
+            "bootstrap.Modal.getOrCreateInstance(document.getElementById('fotosModal')).show();"
         EmitStartupScript("openGaleria", js)
     End Sub
 
@@ -2240,20 +2257,81 @@ Paint:
 
         Dim allOk As Boolean = a1 AndAlso a2 AndAlso a3
 
-        ' Asegura estado visual del tile
+        ' Asegura estado visual del tile (NO sobrescribir checkbox - se lee de BD en CargarExpediente)
         Dim cls As String = tileMec.Attributes("class")
         If allOk Then
             If Not cls.Contains(" ok") Then tileMec.Attributes("class") = cls & " ok"
-            flagMec.Attributes("class") = "diag-flag on"
-            icoMec.Attributes("class") = "bi bi-check-circle-fill"
-            chkMecSi.Checked = True
         Else
             tileMec.Attributes("class") = cls.Replace(" ok", "")
+        End If
+
+        ' Actualizar visual del flag basado en el estado del checkbox (NO cambiar el checkbox)
+        If chkMecSi.Checked Then
+            flagMec.Attributes("class") = "diag-flag on"
+            icoMec.Attributes("class") = "bi bi-toggle-on fs-4"
+        Else
             flagMec.Attributes("class") = "diag-flag off"
-            icoMec.Attributes("class") = "bi bi-x-circle-fill"
-            chkMecSi.Checked = False
+            icoMec.Attributes("class") = "bi bi-toggle-off fs-4"
         End If
     End Sub
+    Private Sub PintarTileColision(admId As Integer)
+        Dim a1 As Boolean = False, a2 As Boolean = False, a3 As Boolean = False
+
+        Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
+        Using cn As New SqlConnection(cs)
+            Using cmd As New SqlCommand("SELECT authoj1, authoj2, authoj3 FROM admisiones WHERE id = @id", cn)
+                cmd.Parameters.Add("@id", SqlDbType.Int).Value = admId
+                cn.Open()
+                Using rd = cmd.ExecuteReader()
+                    If rd.Read() Then
+                        a1 = Not rd.IsDBNull(0) AndAlso Convert.ToBoolean(rd(0))
+                        a2 = Not rd.IsDBNull(1) AndAlso Convert.ToBoolean(rd(1))
+                        a3 = Not rd.IsDBNull(2) AndAlso Convert.ToBoolean(rd(2))
+                    End If
+                End Using
+            End Using
+        End Using
+
+        Dim allOk As Boolean = a1 AndAlso a2 AndAlso a3
+
+        ' Asegura estado visual del tile (NO sobrescribir checkbox - se lee de BD en CargarExpediente)
+        Dim cls As String = tileCol.Attributes("class")
+        If allOk Then
+            If Not cls.Contains(" ok") Then tileCol.Attributes("class") = cls & " ok"
+        Else
+            tileCol.Attributes("class") = cls.Replace(" ok", "")
+        End If
+
+        ' Actualizar visual del flag basado en el estado del checkbox (NO cambiar el checkbox)
+        If chkHojaSi.Checked Then
+            flagHoja.Attributes("class") = "diag-flag on"
+            icoHoja.Attributes("class") = "bi bi-toggle-on fs-4"
+        Else
+            flagHoja.Attributes("class") = "diag-flag off"
+            icoHoja.Attributes("class") = "bi bi-toggle-off fs-4"
+        End If
+    End Sub
+
+    Private Sub PintarTilesValuacion()
+        Dim tileValSin As HtmlGenericControl = TryCast(FindControlRecursive(Me, "tileValSinAut"), HtmlGenericControl)
+        Dim tileValAut As HtmlGenericControl = TryCast(FindControlRecursive(Me, "tileValAutPdf"), HtmlGenericControl)
+
+        If String.IsNullOrWhiteSpace(hidCarpeta.Value) Then
+            SetTileOk(tileValSin, False)
+            SetTileOk(tileValAut, False)
+            Exit Sub
+        End If
+
+        Dim baseFolder As String = ResolverCarpetaFisica(hidCarpeta.Value)
+        Dim valFolder As String = Path.Combine(baseFolder, "4. VALUACION")
+
+        Dim hasValSin As Boolean = File.Exists(Path.Combine(valFolder, "valsin.pdf"))
+        Dim hasValAut As Boolean = File.Exists(Path.Combine(valFolder, "valaut.pdf"))
+
+        SetTileOk(tileValSin, hasValSin)
+        SetTileOk(tileValAut, hasValAut)
+    End Sub
+
     Private Sub CargarFinesDiagnostico(admId As Integer)
         Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
         Dim finMecObj As Object = Nothing
@@ -2286,6 +2364,139 @@ Paint:
         Return "—"
     End Function
 
+    ' ====== PROCESO DE VALUACIÓN ======
+
+    ' Procesar y establecer inival/limival si condiciones se cumplen
+    Private Sub ProcesarValuacion(admId As Integer)
+        Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
+
+        Using cn As New SqlConnection(cs)
+            cn.Open()
+
+            ' Leer estado actual
+            Dim mecSi As Boolean = False, hojaSi As Boolean = False
+            Dim autMec1 As Boolean = False, autMec2 As Boolean = False, autMec3 As Boolean = False
+            Dim autHoj1 As Boolean = False, autHoj2 As Boolean = False, autHoj3 As Boolean = False
+            Dim inivalExiste As Boolean = False
+
+            Using cmd As New SqlCommand("SELECT mecsi, hojasi, autmec1, autmec2, autmec3, authoj1, authoj2, authoj3, inival FROM admisiones WHERE id = @id", cn)
+                cmd.Parameters.Add("@id", SqlDbType.Int).Value = admId
+                Using rd = cmd.ExecuteReader()
+                    If rd.Read() Then
+                        mecSi = Not rd.IsDBNull(0) AndAlso Convert.ToBoolean(rd(0))
+                        hojaSi = Not rd.IsDBNull(1) AndAlso Convert.ToBoolean(rd(1))
+                        autMec1 = Not rd.IsDBNull(2) AndAlso Convert.ToBoolean(rd(2))
+                        autMec2 = Not rd.IsDBNull(3) AndAlso Convert.ToBoolean(rd(3))
+                        autMec3 = Not rd.IsDBNull(4) AndAlso Convert.ToBoolean(rd(4))
+                        autHoj1 = Not rd.IsDBNull(5) AndAlso Convert.ToBoolean(rd(5))
+                        autHoj2 = Not rd.IsDBNull(6) AndAlso Convert.ToBoolean(rd(6))
+                        autHoj3 = Not rd.IsDBNull(7) AndAlso Convert.ToBoolean(rd(7))
+                        inivalExiste = Not rd.IsDBNull(8)
+                    End If
+                End Using
+            End Using
+
+            ' Condición: mecánica completa O hojalatería completa
+            Dim mecCompleto As Boolean = mecSi AndAlso autMec1 AndAlso autMec2 AndAlso autMec3
+            Dim hojCompleto As Boolean = hojaSi AndAlso autHoj1 AndAlso autHoj2 AndAlso autHoj3
+
+            ' Si alguno está completo y no existe inival, insertarlo
+            If (mecCompleto OrElse hojCompleto) AndAlso Not inivalExiste Then
+                Dim ahora As DateTime = DateTime.Now
+                Dim limival As DateTime = CalcularFechaLimite(ahora, 8) ' 8 horas hábiles
+
+                Using cmdUpd As New SqlCommand("UPDATE admisiones SET inival = @inival, limival = @limival WHERE id = @id AND inival IS NULL", cn)
+                    cmdUpd.Parameters.Add("@id", SqlDbType.Int).Value = admId
+                    cmdUpd.Parameters.Add("@inival", SqlDbType.DateTime).Value = ahora
+                    cmdUpd.Parameters.Add("@limival", SqlDbType.DateTime).Value = limival
+                    cmdUpd.ExecuteNonQuery()
+                End Using
+            End If
+        End Using
+    End Sub
+
+    ' Calcular fecha límite agregando horas hábiles (L-V 8am-7pm) con minutos
+    Private Function CalcularFechaLimite(fechaInicio As DateTime, horasHabiles As Integer) As DateTime
+        Dim resultado As DateTime = fechaInicio
+        Dim minutosRestantes As Integer = horasHabiles * 60
+
+        ' Horario laboral: 8:00 AM a 7:00 PM (11 horas por día = 660 minutos)
+        Dim horaInicio As Integer = 8
+        Dim horaFin As Integer = 19
+
+        While minutosRestantes > 0
+            ' Si es fin de semana, avanzar al lunes
+            If resultado.DayOfWeek = DayOfWeek.Saturday Then
+                resultado = resultado.AddDays(2).Date.AddHours(horaInicio)
+                Continue While
+            ElseIf resultado.DayOfWeek = DayOfWeek.Sunday Then
+                resultado = resultado.AddDays(1).Date.AddHours(horaInicio)
+                Continue While
+            End If
+
+            ' Si estamos antes del horario laboral, mover al inicio
+            If resultado.Hour < horaInicio Then
+                resultado = resultado.Date.AddHours(horaInicio)
+            End If
+
+            ' Si estamos después del horario laboral, mover al siguiente día hábil
+            If resultado.Hour >= horaFin Then
+                resultado = resultado.AddDays(1).Date.AddHours(horaInicio)
+                Continue While
+            End If
+
+            ' Calcular minutos disponibles hoy (desde la hora:minuto actual hasta las 19:00)
+            Dim finHoy As DateTime = resultado.Date.AddHours(horaFin)
+            Dim minutosDisponiblesHoy As Integer = CInt((finHoy - resultado).TotalMinutes)
+
+            If minutosRestantes <= minutosDisponiblesHoy Then
+                ' Podemos completar hoy
+                resultado = resultado.AddMinutes(minutosRestantes)
+                minutosRestantes = 0
+            Else
+                ' Usar los minutos disponibles hoy y continuar mañana
+                minutosRestantes -= minutosDisponiblesHoy
+                resultado = resultado.AddDays(1).Date.AddHours(horaInicio)
+            End If
+        End While
+
+        Return resultado
+    End Function
+
+    ' Cargar y mostrar fechas de valuación
+    Private Sub CargarFechasValuacion(admId As Integer)
+        Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
+
+        Dim inivalObj As Object = Nothing
+        Dim limivalObj As Object = Nothing
+        Dim envvalObj As Object = Nothing
+        Dim autvalObj As Object = Nothing
+        Dim limautvalObj As Object = Nothing
+
+        Using cn As New SqlConnection(cs)
+            Using cmd As New SqlCommand("SELECT inival, limival, envval, autval, limautval FROM admisiones WHERE id = @id", cn)
+                cmd.Parameters.Add("@id", SqlDbType.Int).Value = admId
+                cn.Open()
+                Using rd = cmd.ExecuteReader()
+                    If rd.Read() Then
+                        inivalObj = If(rd.IsDBNull(0), Nothing, rd.GetValue(0))
+                        limivalObj = If(rd.IsDBNull(1), Nothing, rd.GetValue(1))
+                        envvalObj = If(rd.IsDBNull(2), Nothing, rd.GetValue(2))
+                        autvalObj = If(rd.IsDBNull(3), Nothing, rd.GetValue(3))
+                        limautvalObj = If(rd.IsDBNull(4), Nothing, rd.GetValue(4))
+                    End If
+                End Using
+            End Using
+        End Using
+
+        ' Asignar a los labels
+        lblFechaIniVal.Text = FormatearFechaCortaHora(inivalObj)
+        lblFechaLimEnvVal.Text = FormatearFechaCortaHora(limivalObj)
+        lblFechaEnvVal.Text = FormatearFechaCortaHora(envvalObj)
+        lblFechaAutVal.Text = FormatearFechaCortaHora(autvalObj)
+        lblFechaLimAutVal.Text = FormatearFechaCortaHora(limautvalObj)
+    End Sub
+
     ' Helper para leer Estatus (TRANSITO / PISO)
     Private Function GetAdmEstatusById(admId As Integer) As String
         If admId <= 0 Then Return String.Empty
@@ -2301,6 +2512,407 @@ Paint:
         End Using
     End Function
 
+    ' ====== VALUACIÓN: Subir y Ver PDFs ======
+
+    ' Subir Valuación Sin Autorizar (valsin.pdf)
+    Protected Sub btnUploadValSinAut_Click(sender As Object, e As EventArgs)
+        If String.IsNullOrWhiteSpace(hidCarpeta.Value) Then Exit Sub
+
+        Dim fu As FileUpload = TryCast(FindControlRecursive(Me, "fuValSinAut"), FileUpload)
+        If fu Is Nothing OrElse Not fu.HasFile Then Exit Sub
+
+        Dim ext As String = Path.GetExtension(fu.FileName).ToLowerInvariant()
+        If ext <> ".pdf" Then Exit Sub
+
+        ' Crear carpeta 4. VALUACION si no existe
+        Dim baseFolder As String = ResolverCarpetaFisica(hidCarpeta.Value)
+        Dim valFolder As String = Path.Combine(baseFolder, "4. VALUACION")
+        If Not Directory.Exists(valFolder) Then Directory.CreateDirectory(valFolder)
+
+        ' Guardar como valsin.pdf
+        Dim destino As String = Path.Combine(valFolder, "valsin.pdf")
+        fu.SaveAs(destino)
+
+        ' Actualizar envval en la base de datos
+        Dim admId As Integer
+        If Integer.TryParse(hidId.Value, admId) Then
+            Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
+            Using cn As New SqlConnection(cs)
+                Using cmd As New SqlCommand("UPDATE admisiones SET envval = @envval WHERE id = @id", cn)
+                    cmd.Parameters.Add("@id", SqlDbType.Int).Value = admId
+                    cmd.Parameters.Add("@envval", SqlDbType.DateTime).Value = DateTime.Now
+                    cn.Open()
+                    cmd.ExecuteNonQuery()
+                End Using
+            End Using
+
+            ' Recargar fechas
+            CargarFechasValuacion(admId)
+        End If
+
+        ' Pintar tiles
+        PintarTilesValuacion()
+
+        ' Abrir modal de visualización automáticamente
+        Dim url As String = ResolveUrl("~/ViewPdf.ashx?id=" & hidId.Value & "&kind=valsin&v=" & DateTime.Now.Ticks.ToString())
+        EmitStartupScript("autoOpenValSin", "
+            document.getElementById('iframeValSinAut').src = '" & url & "';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerValSinAut')).show();
+        ")
+
+        UpdateBottomWidgets()
+    End Sub
+
+    ' Ver Hoja de Trabajo Sin Autorizar
+    Protected Sub btnVerHojaTrabajo_Click(sender As Object, e As EventArgs)
+        If String.IsNullOrWhiteSpace(hidId.Value) Then Exit Sub
+
+        Dim admId As Integer
+        If Not Integer.TryParse(hidId.Value, admId) Then Exit Sub
+
+        Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
+
+        ' Cargar datos del vehículo
+        Dim expediente As String = ""
+        Dim carpetaRel As String = ""
+
+        Using cn As New SqlConnection(cs)
+            cn.Open()
+
+            ' Obtener datos de admisiones
+            Using cmd As New SqlCommand("SELECT expediente, marca, tipo, modelo, color, placas, carpetarel FROM admisiones WHERE id = @id", cn)
+                cmd.Parameters.Add("@id", SqlDbType.Int).Value = admId
+                Using rd = cmd.ExecuteReader()
+                    If rd.Read() Then
+                        expediente = If(rd.IsDBNull(0), "", rd.GetString(0))
+                        lblHTExpediente.Text = expediente
+                        lblHTMarca.Text = If(rd.IsDBNull(1), "", rd.GetString(1))
+                        lblHTModelo.Text = If(rd.IsDBNull(2), "", rd.GetString(2))  ' Tipo es el modelo del vehículo
+                        lblHTAnio.Text = If(rd.IsDBNull(3), "", rd.GetValue(3).ToString())  ' Modelo es el año
+                        lblHTColor.Text = If(rd.IsDBNull(4), "", rd.GetString(4))
+                        lblHTPlacas.Text = If(rd.IsDBNull(5), "", rd.GetString(5))
+                        carpetaRel = If(rd.IsDBNull(6), "", rd.GetString(6))
+                    End If
+                End Using
+            End Using
+
+            ' Cargar imagen principal
+            If Not String.IsNullOrWhiteSpace(carpetaRel) Then
+                Dim baseFolder As String = ResolverCarpetaFisica(carpetaRel)
+                Dim imgPath As String = Path.Combine(baseFolder, "1. DOCUMENTOS DE INGRESO", "principal.jpg")
+                If File.Exists(imgPath) Then
+                    Dim bytes = File.ReadAllBytes(imgPath)
+                    imgHTPrincipal.ImageUrl = "data:image/jpeg;base64," & Convert.ToBase64String(bytes)
+                Else
+                    imgHTPrincipal.ImageUrl = ""
+                End If
+            End If
+
+            ' Cargar refacciones - Mecánica Reparación
+            Dim dtMecRep As New DataTable()
+            Using cmd As New SqlCommand("SELECT id, cantidad, descripcion, numparte, observ1, ISNULL(autorizado, 0) as autorizado, ISNULL(estatus, '') as estatus FROM refacciones WHERE expediente = @exp AND UPPER(area) = 'MECANICA' AND UPPER(categoria) = 'REPARACION' ORDER BY id", cn)
+                cmd.Parameters.Add("@exp", SqlDbType.NVarChar).Value = expediente
+                Using da As New SqlDataAdapter(cmd)
+                    da.Fill(dtMecRep)
+                End Using
+            End Using
+            gvMecReparacion.DataSource = dtMecRep
+            gvMecReparacion.DataBind()
+
+            ' Cargar refacciones - Mecánica Sustitución
+            Dim dtMecSus As New DataTable()
+            Using cmd As New SqlCommand("SELECT id, cantidad, descripcion, numparte, observ1, ISNULL(autorizado, 0) as autorizado, ISNULL(estatus, '') as estatus FROM refacciones WHERE expediente = @exp AND UPPER(area) = 'MECANICA' AND UPPER(categoria) = 'SUSTITUCION' ORDER BY id", cn)
+                cmd.Parameters.Add("@exp", SqlDbType.NVarChar).Value = expediente
+                Using da As New SqlDataAdapter(cmd)
+                    da.Fill(dtMecSus)
+                End Using
+            End Using
+            gvMecSustitucion.DataSource = dtMecSus
+            gvMecSustitucion.DataBind()
+
+            ' Cargar refacciones - Hojalatería Reparación
+            Dim dtHojRep As New DataTable()
+            Using cmd As New SqlCommand("SELECT id, cantidad, descripcion, numparte, observ1, ISNULL(autorizado, 0) as autorizado, ISNULL(estatus, '') as estatus FROM refacciones WHERE expediente = @exp AND UPPER(area) = 'HOJALATERIA' AND UPPER(categoria) = 'REPARACION' ORDER BY id", cn)
+                cmd.Parameters.Add("@exp", SqlDbType.NVarChar).Value = expediente
+                Using da As New SqlDataAdapter(cmd)
+                    da.Fill(dtHojRep)
+                End Using
+            End Using
+            gvHojReparacion.DataSource = dtHojRep
+            gvHojReparacion.DataBind()
+
+            ' Cargar refacciones - Hojalatería Sustitución
+            Dim dtHojSus As New DataTable()
+            Using cmd As New SqlCommand("SELECT id, cantidad, descripcion, numparte, observ1, ISNULL(autorizado, 0) as autorizado, ISNULL(estatus, '') as estatus FROM refacciones WHERE expediente = @exp AND UPPER(area) = 'HOJALATERIA' AND UPPER(categoria) = 'SUSTITUCION' ORDER BY id", cn)
+                cmd.Parameters.Add("@exp", SqlDbType.NVarChar).Value = expediente
+                Using da As New SqlDataAdapter(cmd)
+                    da.Fill(dtHojSus)
+                End Using
+            End Using
+            gvHojSustitucion.DataSource = dtHojSus
+            gvHojSustitucion.DataBind()
+
+            ' Cargar admins para validaciones
+            LoadAdminsForHTValidation(cn)
+
+            ' Verificar y pintar estado de validaciones
+            PaintHTValFlags(cn, expediente)
+        End Using
+
+        ' Abrir modal
+        EmitStartupScript("openHojaTrabajo", "bootstrap.Modal.getOrCreateInstance(document.getElementById('modalHojaTrabajo')).show();")
+    End Sub
+
+    Private Sub LoadAdminsForHTValidation(cn As SqlConnection)
+        Dim dt As New DataTable()
+        Using da As New SqlDataAdapter("SELECT UsuarioId, COALESCE(Nombre, Correo) AS Nombre FROM dbo.Usuarios WHERE EsAdmin = 1 ORDER BY Nombre", cn)
+            da.Fill(dt)
+        End Using
+
+        For Each ddl As DropDownList In New DropDownList() {ddlValRef1, ddlValRef2, ddlValRef3}
+            ddl.Items.Clear()
+            ddl.DataSource = dt
+            ddl.DataTextField = "Nombre"
+            ddl.DataValueField = "UsuarioId"
+            ddl.DataBind()
+            ddl.Items.Insert(0, New ListItem("-- Selecciona usuario --", ""))
+            ddl.SelectedIndex = 0
+        Next
+
+        ' Limpiar campos de contraseña
+        txtPassValRef1.Text = ""
+        txtPassValRef2.Text = ""
+        txtPassValRef3.Text = ""
+    End Sub
+
+    Private Sub PaintHTValFlags(cn As SqlConnection, expediente As String)
+        Dim v1 As Boolean = False, v2 As Boolean = False, v3 As Boolean = False
+        Dim n1 As String = "", n2 As String = "", n3 As String = ""
+
+        Using cmd As New SqlCommand("SELECT TOP 1 ISNULL(valrefmec1,0), ISNULL(valrefmec1nombre,''), ISNULL(valrefmec2,0), ISNULL(valrefmec2nombre,''), ISNULL(valrefmec3,0), ISNULL(valrefmec3nombre,'') FROM dbo.Admisiones WHERE Expediente=@exp", cn)
+            cmd.Parameters.Add("@exp", SqlDbType.NVarChar).Value = expediente
+            Using rd = cmd.ExecuteReader()
+                If rd.Read() Then
+                    v1 = rd.GetBoolean(0) : n1 = rd.GetString(1)
+                    v2 = rd.GetBoolean(2) : n2 = rd.GetString(3)
+                    v3 = rd.GetBoolean(4) : n3 = rd.GetString(5)
+                End If
+            End Using
+        End Using
+
+        litValRef1.Text = If(v1, $"<span class='badge bg-success'>Validado</span> <span class='text-success'>{HttpUtility.HtmlEncode(n1)}</span>", "<span class='badge bg-danger'>Pendiente</span>")
+        litValRef2.Text = If(v2, $"<span class='badge bg-success'>Validado</span> <span class='text-success'>{HttpUtility.HtmlEncode(n2)}</span>", "<span class='badge bg-danger'>Pendiente</span>")
+        litValRef3.Text = If(v3, $"<span class='badge bg-success'>Validado</span> <span class='text-success'>{HttpUtility.HtmlEncode(n3)}</span>", "<span class='badge bg-danger'>Pendiente</span>")
+
+        ' Ocultar controles cuando está validado
+        ddlValRef1.Visible = Not v1 : txtPassValRef1.Visible = Not v1 : btnValidarRef1.Visible = Not v1
+        ddlValRef2.Visible = Not v2 : txtPassValRef2.Visible = Not v2 : btnValidarRef2.Visible = Not v2
+        ddlValRef3.Visible = Not v3 : txtPassValRef3.Visible = Not v3 : btnValidarRef3.Visible = Not v3
+
+        ' Actualizar hidden field para JS
+        hfHTValidado.Value = If(v1 AndAlso v2 AndAlso v3, "1", "0")
+    End Sub
+
+    ' Handler para agregar encabezados agrupados a los GridViews de Hoja de Trabajo
+    Protected Sub gvHT_RowDataBound(sender As Object, e As GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.Header Then
+            Dim gv As GridView = DirectCast(sender, GridView)
+            Dim headerRow As New GridViewRow(0, 0, DataControlRowType.Header, DataControlRowState.Normal)
+
+            ' Determinar número de columnas base (3 para todos)
+            Dim baseColSpan As Integer = 3
+
+            ' Columnas base
+            Dim cellBase As New TableHeaderCell()
+            cellBase.ColumnSpan = baseColSpan
+            cellBase.Text = ""
+            headerRow.Cells.Add(cellBase)
+
+            ' Autorización (2 columnas: Si, No)
+            Dim cellAut As New TableHeaderCell()
+            cellAut.ColumnSpan = 2
+            cellAut.Text = "Autorización"
+            cellAut.CssClass = "text-center bg-light"
+            headerRow.Cells.Add(cellAut)
+
+            ' Estatus (3 columnas: P, E, D)
+            Dim cellEst As New TableHeaderCell()
+            cellEst.ColumnSpan = 3
+            cellEst.Text = "Estatus"
+            cellEst.CssClass = "text-center bg-light"
+            headerRow.Cells.Add(cellEst)
+
+            gv.Controls(0).Controls.AddAt(0, headerRow)
+        End If
+    End Sub
+
+    ' Ver Valuación Sin Autorizar
+    Protected Sub btnVerValSinAut_Click(sender As Object, e As EventArgs)
+        If String.IsNullOrWhiteSpace(hidId.Value) Then Exit Sub
+
+        Dim url As String = ResolveUrl("~/ViewPdf.ashx?id=" & hidId.Value & "&kind=valsin&v=" & DateTime.Now.Ticks.ToString())
+        EmitStartupScript("openValSin", "
+            document.getElementById('iframeValSinAut').src = '" & url & "';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerValSinAut')).show();
+        ")
+    End Sub
+
+    ' Subir Valuación Autorizada (valaut.pdf)
+    Protected Sub btnUploadValAutPdf_Click(sender As Object, e As EventArgs)
+        If String.IsNullOrWhiteSpace(hidCarpeta.Value) Then Exit Sub
+
+        Dim fu As FileUpload = TryCast(FindControlRecursive(Me, "fuValAutPdf"), FileUpload)
+        If fu Is Nothing OrElse Not fu.HasFile Then Exit Sub
+
+        Dim ext As String = Path.GetExtension(fu.FileName).ToLowerInvariant()
+        If ext <> ".pdf" Then Exit Sub
+
+        ' Crear carpeta 4. VALUACION si no existe
+        Dim baseFolder As String = ResolverCarpetaFisica(hidCarpeta.Value)
+        Dim valFolder As String = Path.Combine(baseFolder, "4. VALUACION")
+        If Not Directory.Exists(valFolder) Then Directory.CreateDirectory(valFolder)
+
+        ' Guardar como valaut.pdf
+        Dim destino As String = Path.Combine(valFolder, "valaut.pdf")
+        fu.SaveAs(destino)
+
+        ' Actualizar autval en la base de datos
+        Dim admId As Integer
+        If Integer.TryParse(hidId.Value, admId) Then
+            Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
+            Using cn As New SqlConnection(cs)
+                Using cmd As New SqlCommand("UPDATE admisiones SET autval = @autval WHERE id = @id", cn)
+                    cmd.Parameters.Add("@id", SqlDbType.Int).Value = admId
+                    cmd.Parameters.Add("@autval", SqlDbType.DateTime).Value = DateTime.Now
+                    cn.Open()
+                    cmd.ExecuteNonQuery()
+                End Using
+            End Using
+
+            ' Recargar fechas
+            CargarFechasValuacion(admId)
+        End If
+
+        ' Pintar tiles
+        PintarTilesValuacion()
+
+        ' Abrir modal de visualización automáticamente
+        Dim url As String = ResolveUrl("~/ViewPdf.ashx?id=" & hidId.Value & "&kind=valaut&v=" & DateTime.Now.Ticks.ToString())
+        EmitStartupScript("autoOpenValAut", "
+            document.getElementById('iframeValAutPdf').src = '" & url & "';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerValAutPdf')).show();
+        ")
+
+        UpdateBottomWidgets()
+    End Sub
+
+    ' Ver Valuación Autorizada
+    Protected Sub btnVerValAutPdf_Click(sender As Object, e As EventArgs)
+        If String.IsNullOrWhiteSpace(hidId.Value) Then Exit Sub
+
+        Dim url As String = ResolveUrl("~/ViewPdf.ashx?id=" & hidId.Value & "&kind=valaut&v=" & DateTime.Now.Ticks.ToString())
+        EmitStartupScript("openValAut", "
+            document.getElementById('iframeValAutPdf').src = '" & url & "';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerValAutPdf')).show();
+        ")
+    End Sub
+
+    ' ====== Validaciones de Hoja de Trabajo ======
+    Protected Sub btnValidarRef1_Click(sender As Object, e As EventArgs)
+        HandleHTValidation(ddlValRef1, txtPassValRef1, "valrefmec1", litValRef1)
+    End Sub
+
+    Protected Sub btnValidarRef2_Click(sender As Object, e As EventArgs)
+        HandleHTValidation(ddlValRef2, txtPassValRef2, "valrefmec2", litValRef2)
+    End Sub
+
+    Protected Sub btnValidarRef3_Click(sender As Object, e As EventArgs)
+        HandleHTValidation(ddlValRef3, txtPassValRef3, "valrefmec3", litValRef3)
+    End Sub
+
+    Private Sub HandleHTValidation(ddl As DropDownList, txtPass As TextBox, fieldName As String, lit As Literal)
+        Dim cs As String = ConfigurationManager.ConnectionStrings("DaytonaDB").ConnectionString
+        Dim expediente As String = lblHTExpediente.Text
+        If String.IsNullOrWhiteSpace(expediente) Then Exit Sub
+        If String.IsNullOrWhiteSpace(ddl.SelectedValue) Then Exit Sub
+
+        Dim userId As Integer
+        If Not Integer.TryParse(ddl.SelectedValue, userId) Then Exit Sub
+
+        Dim pass As String = If(txtPass.Text, "").Trim()
+        If pass = "" Then Exit Sub
+
+        ' Validar credenciales
+        If Not ValidateHTUser(userId, pass, cs) Then
+            EmitStartupScript("htValErr", "alert('Credenciales inválidas.');")
+            Exit Sub
+        End If
+
+        Dim authName As String = ddl.SelectedItem.Text
+        Dim nameField As String = fieldName & "nombre"
+
+        Using cn As New SqlConnection(cs)
+            Using cmd As New SqlCommand($"UPDATE dbo.Admisiones SET {fieldName}=1, {nameField}=@n WHERE Expediente=@exp", cn)
+                cmd.Parameters.Add("@n", SqlDbType.NVarChar).Value = authName
+                cmd.Parameters.Add("@exp", SqlDbType.NVarChar).Value = expediente
+                cn.Open()
+                cmd.ExecuteNonQuery()
+            End Using
+
+            ' Repintar estado
+            PaintHTValFlags(cn, expediente)
+        End Using
+
+        ' Deshabilitar controles
+        ddl.Enabled = False : txtPass.Enabled = False
+
+        ' Reabrir el modal después del postback
+        EmitStartupScript("reopenHTModal", "bootstrap.Modal.getOrCreateInstance(document.getElementById('modalHojaTrabajo')).show();")
+    End Sub
+
+    Private Function ValidateHTUser(userId As Integer, password As String, cs As String) As Boolean
+        Using cn As New SqlConnection(cs)
+            Using cmd As New SqlCommand("SELECT TOP 1 PasswordHash, PasswordSalt FROM dbo.Usuarios WHERE UsuarioId = @Id", cn)
+                cmd.Parameters.Add("@Id", SqlDbType.Int).Value = userId
+                cn.Open()
+                Using rd = cmd.ExecuteReader()
+                    If Not rd.Read() Then Return False
+                    Dim dbHash As Byte() = TryCast(rd("PasswordHash"), Byte())
+                    Dim salt As Byte() = TryCast(rd("PasswordSalt"), Byte())
+                    If dbHash Is Nothing OrElse salt Is Nothing Then Return False
+
+                    ' PBKDF2 or legacy SHA256
+                    Dim calc() As Byte
+                    If dbHash.Length = 64 Then
+                        Using kdf As New System.Security.Cryptography.Rfc2898DeriveBytes(password, salt, 100000, System.Security.Cryptography.HashAlgorithmName.SHA256)
+                            calc = kdf.GetBytes(64)
+                        End Using
+                    ElseIf dbHash.Length = 32 Then
+                        Dim passBytes = System.Text.Encoding.UTF8.GetBytes(password)
+                        Dim mix(salt.Length + passBytes.Length - 1) As Byte
+                        System.Buffer.BlockCopy(salt, 0, mix, 0, salt.Length)
+                        System.Buffer.BlockCopy(passBytes, 0, mix, salt.Length, passBytes.Length)
+                        Using sha As System.Security.Cryptography.SHA256 = System.Security.Cryptography.SHA256.Create()
+                            calc = sha.ComputeHash(mix)
+                        End Using
+                    Else
+                        Return False
+                    End If
+
+                    Return BytesEqualHT(calc, dbHash)
+                End Using
+            End Using
+        End Using
+    End Function
+
+    Private Function BytesEqualHT(a As Byte(), b As Byte()) As Boolean
+        If a Is Nothing OrElse b Is Nothing OrElse a.Length <> b.Length Then Return False
+        Dim diff As Integer = 0
+        For i As Integer = 0 To a.Length - 1
+            diff = diff Or (a(i) Xor b(i))
+        Next
+        Return diff = 0
+    End Function
 
 End Class
 
