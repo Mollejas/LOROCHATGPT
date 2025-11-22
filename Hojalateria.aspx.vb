@@ -292,6 +292,10 @@ Public Class Hojalateria
     End Sub
 
     Private Sub BindAdminDDL(ddl As DropDownList, dt As DataTable)
+        If ddl Is Nothing Then
+            Return
+        End If
+
         ddl.Items.Clear()
         ddl.AppendDataBoundItems = True
         ddl.Items.Add(New ListItem("-- Selecciona usuario --", ""))
