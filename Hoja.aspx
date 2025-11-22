@@ -143,6 +143,7 @@
     .icon-btn.compacto i{font-size:18px;}
     .icon-btn.compacto:hover{background:var(--brand-600);color:#fff;border-color:var(--brand-700);transform:translateY(-1px);}
     .icon-btn.compacto.disabled,.icon-btn.compacto[disabled]{pointer-events:none;opacity:.45;}
+    .icon-btn.compacto.soft-disabled{opacity:.5;}
     .icon-row.inv.compacto{display:grid!important;grid-template-columns:repeat(2,36px);grid-auto-rows:36px;gap:8px 10px;justify-content:center;align-content:center;}
     @media (min-width: 992px){.icon-row.inv.compacto{grid-template-columns:repeat(4,36px);}}
     .icon-row.inv.compacto .icon-btn{width:36px;height:36px;}
@@ -3116,11 +3117,17 @@
                 setFlagUI('flagMec', 'icoMec', !!mec);
                 setFlagUI('flagHoja', 'icoHoja', !!hoja);
 
-                // Bloquear/permitir clic visualmente (pointer-events: none ya existe en .disabled)
+                // Deja clickeables los accesos a diagnóstico; solo atenuamos visualmente
                 const lnkM = document.querySelector('a#<%= btnDiagnosticoMecanica.ClientID %>');
                 const lnkH = document.querySelector('a#<%= btnDiagnosticoHojalateria.ClientID %>');
-                if(lnkM) lnkM.classList.toggle('disabled', !mec);
-                if(lnkH) lnkH.classList.toggle('disabled', !hoja);
+                if(lnkM){
+                    lnkM.classList.toggle('soft-disabled', !mec);
+                    lnkM.removeAttribute('aria-disabled');
+                }
+                if(lnkH){
+                    lnkH.classList.toggle('soft-disabled', !hoja);
+                    lnkH.removeAttribute('aria-disabled');
+                }
 
                 // Actualizar estado del botón PROCESO DE DIAGNOSTICO y el contenedor
                 const btnDiag = document.getElementById('btnToggleStripDiag');
