@@ -98,6 +98,8 @@
         .tbl td{border-bottom:1px solid var(--border-color)}
         .tbl tr:last-child td{border-bottom:none}
         .tbl tr:hover td{background:var(--primary-light)}
+        .actions-cell a{margin-right:12px;font-weight:700;text-decoration:none;color:var(--nav-bg)}
+        .actions-cell a:last-child{margin-right:0}
 
         .badge{display:inline-block;padding:4px 10px;font-size:11px;font-weight:700;border-radius:999px;background:var(--primary-light);color:var(--chip-active-bg);border:1px solid #a7f3d0;text-transform:uppercase;letter-spacing:.02em}
         .muted{color:var(--text-muted)}
@@ -307,13 +309,14 @@
                         <asp:BoundField DataField="FechaAlta" HeaderText="Fecha Alta" DataFormatString="{0:yyyy-MM-dd HH:mm}" ReadOnly="True" />
                         <asp:TemplateField HeaderText="Acciones">
                             <ItemTemplate>
-                                <asp:LinkButton ID="btnEdit" runat="server" CommandName="Edit" Text="✏️ Modificar" />
-                                <asp:LinkButton ID="btnDelete" runat="server" CommandName="Delete" Text="🗑️ Eliminar" />
+                                <asp:LinkButton ID="btnEdit" runat="server" CommandName="Edit" Text="✏️ Modificar" CausesValidation="False" CssClass="action-link" />
+                                <asp:LinkButton ID="btnDelete" runat="server" CommandName="Delete" Text="🗑️ Eliminar" CausesValidation="False" CssClass="action-link" />
                             </ItemTemplate>
                             <EditItemTemplate>
-                                <asp:LinkButton ID="btnUpdate" runat="server" CommandName="Update" Text="💾 Guardar" />
-                                <asp:LinkButton ID="btnCancel" runat="server" CommandName="Cancel" Text="↩️ Cancelar" CausesValidation="False" />
+                                <asp:LinkButton ID="btnUpdate" runat="server" CommandName="Update" Text="💾 Guardar" CssClass="action-link" />
+                                <asp:LinkButton ID="btnCancel" runat="server" CommandName="Cancel" Text="↩️ Cancelar" CausesValidation="False" CssClass="action-link" />
                             </EditItemTemplate>
+                            <ItemStyle CssClass="actions-cell" />
                         </asp:TemplateField>
                     </Columns>
                 </asp:GridView>
