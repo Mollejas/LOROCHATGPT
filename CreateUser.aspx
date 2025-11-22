@@ -305,7 +305,16 @@
                         </asp:TemplateField>
 
                         <asp:BoundField DataField="FechaAlta" HeaderText="Fecha Alta" DataFormatString="{0:yyyy-MM-dd HH:mm}" ReadOnly="True" />
-                        <asp:CommandField ShowEditButton="True" ShowDeleteButton="True" EditText="✏️ Editar" DeleteText="🗑️ Eliminar" />
+                        <asp:TemplateField HeaderText="Acciones">
+                            <ItemTemplate>
+                                <asp:LinkButton ID="btnEdit" runat="server" CommandName="Edit" Text="✏️ Modificar" />
+                                <asp:LinkButton ID="btnDelete" runat="server" CommandName="Delete" Text="🗑️ Eliminar" />
+                            </ItemTemplate>
+                            <EditItemTemplate>
+                                <asp:LinkButton ID="btnUpdate" runat="server" CommandName="Update" Text="💾 Guardar" />
+                                <asp:LinkButton ID="btnCancel" runat="server" CommandName="Cancel" Text="↩️ Cancelar" CausesValidation="False" />
+                            </EditItemTemplate>
+                        </asp:TemplateField>
                     </Columns>
                 </asp:GridView>
             </div>
