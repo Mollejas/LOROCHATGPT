@@ -3330,18 +3330,9 @@
                return;
            }
 
-           // Verificar si las 3 validaciones están completas
-           const hfValidado = document.getElementById('<%= hfHTValidado.ClientID %>');
-           const validado = hfValidado && hfValidado.value === '1';
-
-           // Si las 3 validaciones están completas, bloquear todo
-           if (validado) {
-               console.log('Cambios bloqueados: las 3 validaciones están completas');
-               return;
-           }
-
            console.log('Toggle encontrado:', toggle);
 
+           const field = toggle.dataset.field;
            const id = toggle.dataset.id;
            const val = toggle.dataset.val;
 
@@ -3397,13 +3388,8 @@
 
            const grids = modal.querySelectorAll('.ht-grid');
            grids.forEach(grid => {
-               if (validado) {
-                   // Las 3 validaciones completas: bloquear todo
-                   grid.classList.add('ht-all-locked');
-               } else {
-                   // Faltan validaciones: permitir cambios
-                   grid.classList.remove('ht-all-locked');
-               }
+               // Siempre permitir cambios en los toggles de autorización/estatus
+               grid.classList.remove('ht-all-locked');
            });
        }
 
