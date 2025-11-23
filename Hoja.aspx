@@ -517,10 +517,19 @@
   text-align: center;
 }
 .ht-toggle:hover { background: #f0f0f0; border-radius: 3px; }
-.ht-toggle:empty::after { content: "○"; color: #ccc; } /* placeholder cuando está vacío */
+.ht-toggle:empty { visibility: hidden; } /* Ocultar completamente si está vacío */
 .ht-si { color: #16a34a; } /* verde */
 .ht-no { color: #dc2626; } /* rojo */
 .ht-status { color: #2563eb; } /* azul */
+
+/* Bloquear todo cuando está validado */
+.ht-all-locked .ht-toggle {
+    cursor: default !important;
+    pointer-events: none;
+}
+.ht-all-locked .ht-toggle:hover {
+    background: transparent !important;
+}
 
 </style>
 
@@ -1550,6 +1559,40 @@
                   </asp:TemplateField>
                 </Columns>
               </asp:GridView>
+            </div>
+          </div>
+
+          <!-- Sección de Validaciones -->
+          <hr class="my-4" />
+          <h6 class="fw-bold text-success mb-3"><i class="bi bi-check-circle"></i> Validaciones de Refacciones</h6>
+          <asp:HiddenField ID="hfHTValidado" runat="server" Value="0" />
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Validación 1</label>
+              <div class="mb-2"><asp:Literal ID="litValRef1" runat="server" /></div>
+              <asp:DropDownList ID="ddlValRef1" runat="server" CssClass="form-select form-select-sm mb-2" />
+              <asp:TextBox ID="txtPassValRef1" runat="server" TextMode="Password" CssClass="form-control form-control-sm mb-2" placeholder="Contraseña" />
+              <asp:LinkButton ID="btnValidarRef1" runat="server" CssClass="btn btn-sm btn-success" OnClick="btnValidarRef1_Click">
+                <i class="bi bi-check"></i> Validar
+              </asp:LinkButton>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Validación 2</label>
+              <div class="mb-2"><asp:Literal ID="litValRef2" runat="server" /></div>
+              <asp:DropDownList ID="ddlValRef2" runat="server" CssClass="form-select form-select-sm mb-2" />
+              <asp:TextBox ID="txtPassValRef2" runat="server" TextMode="Password" CssClass="form-control form-control-sm mb-2" placeholder="Contraseña" />
+              <asp:LinkButton ID="btnValidarRef2" runat="server" CssClass="btn btn-sm btn-success" OnClick="btnValidarRef2_Click">
+                <i class="bi bi-check"></i> Validar
+              </asp:LinkButton>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Validación 3</label>
+              <div class="mb-2"><asp:Literal ID="litValRef3" runat="server" /></div>
+              <asp:DropDownList ID="ddlValRef3" runat="server" CssClass="form-select form-select-sm mb-2" />
+              <asp:TextBox ID="txtPassValRef3" runat="server" TextMode="Password" CssClass="form-control form-control-sm mb-2" placeholder="Contraseña" />
+              <asp:LinkButton ID="btnValidarRef3" runat="server" CssClass="btn btn-sm btn-success" OnClick="btnValidarRef3_Click">
+                <i class="bi bi-check"></i> Validar
+              </asp:LinkButton>
             </div>
           </div>
         </div>
@@ -3287,10 +3330,19 @@
                return;
            }
 
+           // Verificar si las 3 validaciones están completas
+           const hfValidado = document.getElementById('<%= hfHTValidado.ClientID %>');
+           const validado = hfValidado && hfValidado.value === '1';
+
+           // Si las 3 validaciones están completas, bloquear todo
+           if (validado) {
+               console.log('Cambios bloqueados: las 3 validaciones están completas');
+               return;
+           }
+
            console.log('Toggle encontrado:', toggle);
 
            const id = toggle.dataset.id;
-           const field = toggle.dataset.field;
            const val = toggle.dataset.val;
 
            console.log('Datos:', { id, field, val });
@@ -3332,6 +3384,42 @@
                })
                .catch(err => console.error('Error:', err));
        });
+
+       // Función para bloquear todo cuando las 3 validaciones están completas
+       function updateHTGridState() {
+           const hfValidado = document.getElementById('<%= hfHTValidado.ClientID %>');
+           const validado = hfValidado && hfValidado.value === '1';
+           const modal = document.getElementById('modalHojaTrabajo');
+
+           console.log('updateHTGridState - hfValidado:', hfValidado ? hfValidado.value : 'NOT FOUND', 'validado:', validado);
+
+           if (!modal) return;
+
+           const grids = modal.querySelectorAll('.ht-grid');
+           grids.forEach(grid => {
+               if (validado) {
+                   // Las 3 validaciones completas: bloquear todo
+                   grid.classList.add('ht-all-locked');
+               } else {
+                   // Faltan validaciones: permitir cambios
+                   grid.classList.remove('ht-all-locked');
+               }
+           });
+       }
+
+       // Actualizar estado cuando se abre el modal
+       const htModal = document.getElementById('modalHojaTrabajo');
+       if (htModal) {
+           htModal.addEventListener('shown.bs.modal', updateHTGridState);
+       }
+
+       // También actualizar después de un postback
+       if (typeof Sys !== 'undefined' && Sys.WebForms) {
+           Sys.WebForms.PageRequestManager.getInstance().add_endRequest(updateHTGridState);
+       }
+
+       // Ejecutar al cargar
+       document.addEventListener('DOMContentLoaded', updateHTGridState);
    </script>
 
 
